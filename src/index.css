@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    /* Height of the bottom nav plus the phone's home indicator. */
+    --nav-h: calc(66px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper font-body text-ink antialiased;
+    /* A very faint court hatch, so the paper reads as a surface, not a void. */
+    background-image: radial-gradient(rgba(14, 75, 69, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+    overscroll-behavior-y: none;
+  }
+
+  /* 16px is the threshold below which iOS Safari zooms on focus. */
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px;
+    font-family: inherit;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-court ring-offset-2 ring-offset-paper;
+  }
+
+  ::selection {
+    @apply bg-optic text-court-deep;
+  }
+}
+
+@layer components {
+  .num {
+    font-family: theme('fontFamily.display');
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .card {
+    @apply rounded-card border border-paper-edge bg-white shadow-card;
+  }
+
+  .label {
+    @apply mb-2 block text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-faint;
+  }
+
+  .field {
+    @apply w-full rounded-2xl border border-paper-edge bg-paper-soft px-4 py-3.5 text-[16px]
+           text-ink placeholder:text-ink-faint/70 focus:border-court focus:bg-white;
+  }
+
+  .field-num {
+    @apply num text-right text-[22px] font-semibold;
+  }
+
+  /* Primary action: the one place optic-yellow is allowed to shout. */
+  .btn-primary {
+    @apply flex w-full items-center justify-center gap-2 rounded-2xl bg-optic px-5 py-4
+           font-display text-[17px] font-bold text-court-deep shadow-lift
+           active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-quiet {
+    @apply rounded-xl border border-paper-edge bg-white px-3 py-2 text-sm font-semibold text-ink-soft
+           active:translate-y-px;
+  }
+
+  .chip {
+    @apply rounded-full border border-paper-edge bg-white px-3 py-1.5 text-[13px] font-semibold text-ink-soft;
+  }
+
+  .chip-on {
+    @apply border-court bg-court text-paper;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
