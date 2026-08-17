@@ -21,7 +21,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="grid gap-1.5 rounded-2xl border border-paper-edge bg-paper-soft p-1.5"
+      className="grid gap-1.5 rounded-2xl border border-line bg-navy-deep p-1.5"
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
     >
       {options.map((opt) => {
@@ -37,8 +37,8 @@ export function Segmented<T extends string>({
               'rounded-xl text-center transition-colors',
               size === 'md' ? 'px-2 py-3' : 'px-2 py-2',
               active
-                ? 'bg-court text-paper shadow-card'
-                : 'bg-transparent text-ink-soft active:bg-white',
+                ? 'bg-sky text-charcoal shadow-card'
+                : 'bg-transparent text-ink-soft active:bg-navy-lift',
             ].join(' ')}
           >
             <span className="block font-display text-[15px] font-semibold leading-tight">
@@ -48,7 +48,7 @@ export function Segmented<T extends string>({
               <span
                 className={[
                   'mt-0.5 block text-[11px] leading-tight',
-                  active ? 'text-paper/70' : 'text-ink-faint',
+                  active ? 'text-charcoal/70' : 'text-ink-faint',
                 ].join(' ')}
               >
                 {opt.sub}

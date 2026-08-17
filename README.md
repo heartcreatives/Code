@@ -118,6 +118,36 @@ or UTC, so a 9PM entry never lands on the wrong day's takings.
 
 ---
 
+## Brand
+
+Taken from the Pikol sa Paayo badge. The tokens live in
+[`src/lib/brand.ts`](src/lib/brand.ts) and `tailwind.config.js` — change them in
+those two places and the whole app follows.
+
+| Colour | Hex | Used for |
+|---|---|---|
+| Charcoal | `#17191C` | Page ground |
+| Navy | `#0B2942` | Cards, the court surface |
+| Sky blue | `#55B8E8` | Court lines, highlights, **money in** |
+| Paayo orange | `#F58220` | The primary button, the one key figure per screen |
+| White | `#FFFFFF` | Type |
+| Rose | `#E5486B` | **Money out** |
+
+Roughly 60% charcoal + navy, 25% sky, 10% orange, 5% white. Orange is rationed
+deliberately: one Save button, one net figure. If it starts appearing in three
+places on a screen it has stopped being the signature.
+
+Rose is the one colour not in the badge. The brand has no "negative" colour, and
+a plain red sits only ΔE 12 from Paayo orange — close enough that a red expense
+figure and an orange button read as the same colour at a glance. This rose clears
+every pairing. Nothing relies on colour alone in any case: every figure is
+labelled, and expenses carry a − sign.
+
+**The logo.** `src/components/Logo.tsx` draws a simplified roundel — at 36px in
+a header the full badge's lettering would turn to mud. To use the original
+artwork on the sign-in screen, drop it in as `public/logo.png` and swap the
+`<Logo />` in `Wordmark` for an `<img>`.
+
 ## Project layout
 
 ```

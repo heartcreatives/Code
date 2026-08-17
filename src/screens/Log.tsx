@@ -125,7 +125,7 @@ export function Log() {
   return (
     <form onSubmit={submit} className="space-y-5 pb-6">
       <header className="pt-1">
-        <h1 className="font-display text-2xl font-bold text-court-deep">Log an entry</h1>
+        <h1 className="font-display text-2xl font-bold text-white">Log an entry</h1>
         <p className="mt-1 text-[15px] text-ink-soft">
           {online ? 'Everyone at the court sees this within seconds.' : 'Offline — entries queue and sync later.'}
         </p>
@@ -292,18 +292,18 @@ export function Log() {
       </section>
 
       {/* The amount card carries the court motif — the one bold moment. */}
-      <section className="card relative overflow-hidden bg-court p-4 text-paper">
-        <CourtLines className="absolute inset-0 h-full w-full text-paper opacity-20" />
+      <section className="card relative overflow-hidden bg-navy p-4 text-white">
+        <CourtLines className="absolute inset-0 h-full w-full text-sky opacity-30" />
         <div className="relative">
-          <label className="label !text-paper/70" htmlFor="amount">
+          <label className="label !text-ink-soft" htmlFor="amount">
             {kind === 'expense' ? 'Cost' : 'Amount'}
           </label>
           <div className="flex items-baseline gap-2">
-            <span className="num text-3xl font-bold text-optic">₱</span>
+            <span className="num text-3xl font-bold text-orange">₱</span>
             <input
               id="amount"
               ref={amountRef}
-              className="num w-full bg-transparent text-right text-4xl font-bold text-optic placeholder:text-paper/30 focus:outline-none"
+              className="num w-full bg-transparent text-right text-4xl font-bold text-orange placeholder:text-white/30 focus:outline-none"
               inputMode="decimal"
               placeholder="0"
               value={amountText}
@@ -314,7 +314,7 @@ export function Log() {
               aria-describedby="amount-help"
             />
           </div>
-          <p id="amount-help" className="mt-2 text-[13px] text-paper/75">
+          <p id="amount-help" className="mt-2 text-[13px] text-ink-soft">
             {kind === 'booking' &&
               (amountEdited
                 ? 'Edited by hand — change time, hours or rate to recalculate.'

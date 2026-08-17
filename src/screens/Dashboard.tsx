@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { BarPanel } from '../components/BarPanel'
 import { CourtLines } from '../components/CourtLines'
 import { EmptyState } from '../components/EmptyState'
+import { Wordmark } from '../components/Logo'
 import { useToast } from '../components/Toast'
 import { useLedger } from '../state/LedgerContext'
 import { useAuth } from '../state/AuthContext'
@@ -10,6 +11,7 @@ import { PERIODS, inRange, rangeFor, summarise, type Period } from '../lib/analy
 import { hours as fmtHours, peso, pesoSigned, plural } from '../lib/format'
 import { CATEGORY_LABEL } from '../lib/types'
 import { clearSampleData, loadSampleData, seedEnabled } from '../lib/seed'
+import { CHART } from '../lib/brand'
 
 const PERIOD_KEY = 'paayo.period'
 
@@ -46,15 +48,16 @@ export function Dashboard() {
 
   return (
     <div className="space-y-4 pb-6">
-      <header className="flex items-baseline justify-between pt-1">
+      <header className="flex items-center justify-between pt-1">
         <div>
-          <h1 className="font-display text-2xl font-bold text-court-deep">Paayo Court</h1>
-          <p className="mt-0.5 text-[15px] text-ink-soft">{range.label}</p>
+          <h1 className="sr-only">Pikol sa Paayo — court ledger</h1>
+          <Wordmark compact />
+          <p className="mt-1.5 text-[15px] text-ink-soft">{range.label}</p>
         </div>
         <span
           className={[
             'rounded-full px-2.5 py-1 text-[12px] font-semibold',
-            online ? 'bg-gain/10 text-gain' : 'bg-[#7A5A12]/10 text-[#7A5A12]',
+            online ? 'bg-sky/15 text-sky' : 'bg-orange/15 text-orange',
           ].join(' ')}
         >
           {online ? 'Live' : 'Offline'}
@@ -81,12 +84,12 @@ export function Dashboard() {
       </div>
 
       {error && (
-        <p className="rounded-2xl border border-spend/30 bg-spend/10 px-4 py-3 text-[14px] text-spend">
+        <p className="rounded-2xl border border-spend/40 bg-spend/10 px-4 py-3 text-[14px] text-spend">
           {error}
         </p>
       )}
       {queuedCount > 0 && (
-        <p className="rounded-2xl border border-[#7A5A12]/25 bg-[#7A5A12]/10 px-4 py-3 text-[14px] text-[#7A5A12]">
+        <p className="rounded-2xl border border-orange/30 bg-orange/10 px-4 py-3 text-[14px] text-orange">
           {plural(queuedCount, 'entry', 'entries')} waiting to sync.{' '}
           <Link to="/history" className="underline">
             See them
@@ -95,21 +98,21 @@ export function Dashboard() {
       )}
 
       {/* Hero: the net for the period, on the court. */}
-      <section className="card relative overflow-hidden bg-court p-5 text-paper">
-        <CourtLines className="absolute inset-0 h-full w-full text-paper opacity-[0.18]" />
+      <section className="card relative overflow-hidden bg-navy p-5 text-white">
+        <CourtLines className="absolute inset-0 h-full w-full text-sky opacity-30" />
         <div className="relative">
-          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-paper/70">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-soft">
             Net · {range.label}
           </p>
           <p
             className={[
               'num mt-1 text-[44px] font-bold leading-none',
-              summary.net < 0 ? 'text-[#F0A79A]' : 'text-optic',
+              summary.net < 0 ? 'text-spend' : 'text-orange',
             ].join(' ')}
           >
             {pesoSigned(summary.net)}
           </p>
-          <p className="mt-2 text-[14px] text-paper/75">
+          <p className="mt-2 text-[14px] text-ink-soft">
             {summary.entryCount === 0
               ? 'Nothing logged yet for this period.'
               : `${plural(summary.entryCount, 'entry', 'entries')} · ${fmtHours(summary.courtHours)} of court sold`}
@@ -145,7 +148,7 @@ export function Dashboard() {
           <BarPanel
             title="Where it came in"
             subtitle="Money in by channel — reconcile against your GCash and Maya payouts"
-            color="#0E4B45"
+            color={CHART.moneyIn}
             emptyText="No money in for this period yet."
             data={[
               { label: 'Cash', value: summary.byMethod.cash },
@@ -156,7 +159,7 @@ export function Dashboard() {
 
           <BarPanel
             title="Revenue by type"
-            color="#0E7A63"
+            color={CHART.revenue}
             emptyText="No revenue for this period yet."
             data={[
               { label: 'Court bookings', value: summary.byType.bookings },
@@ -166,7 +169,7 @@ export function Dashboard() {
 
           <BarPanel
             title="Expenses by category"
-            color="#B4472E"
+            color={CHART.expense}
             emptyText="No expenses for this period. Log one when the court spends."
             data={summary.byCategory.map((c) => ({
               label: CATEGORY_LABEL[c.category],
@@ -179,7 +182,7 @@ export function Dashboard() {
               <h2 className="font-display text-[17px] font-bold text-ink">Expenses paid from</h2>
               <ul className="mt-3 space-y-2 text-[15px]">
                 {(['cash', 'gcash', 'maya'] as const).map((m) => (
-                  <li key={m} className="flex justify-between border-b border-paper-edge pb-2 last:border-0">
+                  <li key={m} className="flex justify-between border-b border-line pb-2 last:border-0">
                     <span className="text-ink-soft">
                       {m === 'cash' ? 'Cash' : m === 'gcash' ? 'GCash' : 'Maya'}
                     </span>
@@ -237,7 +240,7 @@ function Kpi({
       <p
         className={[
           'num mt-1.5 text-[26px] font-bold leading-none',
-          tone === 'gain' ? 'text-gain' : tone === 'spend' ? 'text-spend' : 'text-ink',
+          tone === 'gain' ? 'text-sky' : tone === 'spend' ? 'text-spend' : 'text-ink',
         ].join(' ')}
       >
         {value}

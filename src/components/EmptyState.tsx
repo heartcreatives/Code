@@ -14,14 +14,14 @@ export function EmptyState({
 }) {
   return (
     <div className="card relative overflow-hidden px-6 py-10 text-center">
-      <CourtLines className="absolute inset-0 h-full w-full text-court opacity-[0.07]" />
+      <CourtLines className="absolute inset-0 h-full w-full text-sky opacity-[0.07]" />
       <div className="relative">
         <h2 className="font-display text-lg font-bold text-ink">{title}</h2>
         <p className="mx-auto mt-2 max-w-[30ch] text-[15px] leading-relaxed text-ink-soft">{body}</p>
         {actionTo && (
           <Link
             to={actionTo}
-            className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-court px-5 py-3 font-display text-[15px] font-bold text-paper"
+            className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-orange px-5 py-3 font-display text-[15px] font-bold text-charcoal"
           >
             {actionLabel}
           </Link>

@@ -49,7 +49,7 @@ export function History() {
     <div className="space-y-4 pb-6">
       <header className="flex items-baseline justify-between pt-1">
         <div>
-          <h1 className="font-display text-2xl font-bold text-court-deep">History</h1>
+          <h1 className="font-display text-2xl font-bold text-white">History</h1>
           <p className="mt-0.5 text-[15px] text-ink-soft">
             {plural(shown.length, 'entry', 'entries')}
           </p>
@@ -95,20 +95,20 @@ export function History() {
       ) : (
         days.map((day) => (
           <section key={day.date}>
-            <div className="sticky top-0 z-10 -mx-4 flex items-baseline justify-between bg-paper/95 px-4 py-2 backdrop-blur">
-              <h2 className="font-display text-[15px] font-bold text-court-deep">
+            <div className="sticky top-0 z-10 -mx-4 flex items-baseline justify-between bg-charcoal/95 px-4 py-2 backdrop-blur">
+              <h2 className="font-display text-[15px] font-bold text-white">
                 {formatDayHeading(day.date)}
               </h2>
               <span
                 className={[
                   'num text-[15px] font-bold',
-                  day.net < 0 ? 'text-spend' : 'text-gain',
+                  day.net < 0 ? 'text-spend' : 'text-sky',
                 ].join(' ')}
               >
                 {pesoSigned(day.net)}
               </span>
             </div>
-            <ul className="card divide-y divide-paper-edge overflow-hidden">
+            <ul className="card divide-y divide-line overflow-hidden">
               {day.rows.map((row) => (
                 <Row key={row.id} row={row} onDelete={() => setPendingDelete(row)} onRetry={() => retry(row.id)} />
               ))}
@@ -148,7 +148,7 @@ function Row({
         aria-hidden="true"
         className={[
           'mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full',
-          out ? 'bg-spend' : 'bg-gain',
+          out ? 'bg-spend' : 'bg-sky',
         ].join(' ')}
       />
       <div className="min-w-0 flex-1">
@@ -164,17 +164,17 @@ function Row({
             </button>
           </p>
         )}
-        {row.pending && <p className="mt-1 text-[13px] font-semibold text-[#7A5A12]">Waiting to sync…</p>}
+        {row.pending && <p className="mt-1 text-[13px] font-semibold text-orange">Waiting to sync…</p>}
       </div>
       <div className="flex flex-col items-end gap-1.5">
-        <span className={['num text-[17px] font-bold', out ? 'text-spend' : 'text-gain'].join(' ')}>
+        <span className={['num text-[17px] font-bold', out ? 'text-spend' : 'text-sky'].join(' ')}>
           {out ? `−${peso(row.amount)}` : peso(row.amount)}
         </span>
         <button
           type="button"
           onClick={onDelete}
           aria-label={`Delete ${title(row.kind)} of ${peso(row.amount)}`}
-          className="rounded-lg px-2 py-1 text-[12px] font-semibold text-ink-faint active:bg-paper-soft"
+          className="rounded-lg px-2 py-1 text-[12px] font-semibold text-ink-faint active:bg-navy-deep"
         >
           Delete
         </button>

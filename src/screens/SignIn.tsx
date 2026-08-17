@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CourtLines } from '../components/CourtLines'
+import { Wordmark } from '../components/Logo'
 import { useAuth } from '../state/AuthContext'
 
 export function SignIn() {
@@ -26,12 +27,10 @@ export function SignIn() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
       <div className="card relative overflow-hidden p-6">
-        <CourtLines className="absolute inset-0 h-full w-full text-court opacity-[0.08]" />
+        <CourtLines className="absolute inset-0 h-full w-full text-sky opacity-[0.08]" />
         <div className="relative">
-          <p className="font-display text-[13px] font-bold uppercase tracking-[0.14em] text-gain">
-            Paayo Pickleball
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-bold leading-tight text-court-deep">
+          <Wordmark />
+          <h1 className="mt-4 font-display text-3xl font-bold leading-tight text-white">
             Court ledger
           </h1>
 
@@ -44,7 +43,7 @@ export function SignIn() {
               </p>
               <button
                 type="button"
-                className="mt-4 text-[15px] font-semibold text-court underline"
+                className="mt-4 text-[15px] font-semibold text-sky underline"
                 onClick={() => setSent(false)}
               >
                 Use a different email
@@ -88,7 +87,7 @@ export function NotAllowed() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
       <div className="card p-6">
-        <h1 className="font-display text-2xl font-bold text-court-deep">Not on the court list</h1>
+        <h1 className="font-display text-2xl font-bold text-white">Not on the court list</h1>
         <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
           <span className="font-semibold text-ink">{email}</span> isn’t one of the staff emails set
           up for this ledger, so there’s nothing to show. Ask the owner to add you, then sign in

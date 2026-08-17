@@ -37,8 +37,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             className={[
               'pointer-events-auto w-full max-w-sm animate-toast-in rounded-2xl px-4 py-3',
               'text-[15px] font-semibold shadow-lift',
-              t.tone === 'ok' ? 'bg-court-deep text-paper' : '',
-              t.tone === 'warn' ? 'bg-[#7A5A12] text-paper' : '',
+              t.tone === 'ok' ? 'bg-navy-lift text-white ring-1 ring-sky/30' : '',
+              t.tone === 'warn' ? 'bg-orange-deep text-white' : '',
               t.tone === 'error' ? 'bg-spend text-white' : '',
             ].join(' ')}
           >

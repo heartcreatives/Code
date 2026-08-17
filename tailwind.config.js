@@ -4,23 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        court: {
-          DEFAULT: '#0E4B45',
-          deep: '#08332F',
-          line: 'rgba(235,240,233,0.22)',
+        // Pikol sa Paayo. See src/lib/brand.ts for the ratios these are used in.
+        charcoal: {
+          DEFAULT: '#17191C',
+          soft: '#1E2227',
         },
-        paper: {
-          DEFAULT: '#EBF0E9',
-          soft: '#F5F8F3',
-          edge: '#DAE2D6',
+        navy: {
+          DEFAULT: '#0B2942',
+          deep: '#081F33',
+          lift: '#0F3453',
         },
-        optic: '#C7E63F',
-        gain: '#0E7A63',
-        spend: '#B4472E',
+        sky: {
+          DEFAULT: '#55B8E8',
+          dim: '#3E93BD',
+        },
+        orange: {
+          DEFAULT: '#F58220',
+          deep: '#D96C11',
+        },
+        spend: '#E5486B',
+        line: '#1E4365', // card borders and dividers
         ink: {
-          DEFAULT: '#12211F',
-          soft: '#4A5B57',
-          faint: '#7C8B86',
+          DEFAULT: '#FFFFFF',
+          soft: '#A8C0D4',
+          faint: '#7B94A8',
         },
       },
       fontFamily: {
@@ -31,8 +38,9 @@ export default {
         card: '18px',
       },
       boxShadow: {
-        card: '0 1px 2px rgba(8,51,47,0.06), 0 8px 24px -16px rgba(8,51,47,0.35)',
-        lift: '0 10px 30px -12px rgba(8,51,47,0.45)',
+        card: '0 1px 2px rgba(0,0,0,0.30), 0 12px 28px -20px rgba(0,0,0,0.75)',
+        lift: '0 10px 30px -12px rgba(245,130,32,0.45)',
+        glow: '0 0 0 1px rgba(85,184,232,0.18)',
       },
       keyframes: {
         'rise-in': {

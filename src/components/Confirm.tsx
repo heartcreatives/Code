@@ -31,14 +31,14 @@ export function Confirm({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-court-deep/45 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-charcoal/70 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-label={title}
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm animate-rise-in rounded-card bg-white p-5 shadow-lift"
+        className="w-full max-w-sm animate-rise-in rounded-card border border-line bg-navy p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="font-display text-lg font-bold text-ink">{title}</h2>
@@ -47,7 +47,7 @@ export function Confirm({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-2xl border border-paper-edge bg-paper-soft py-3.5 font-semibold text-ink-soft"
+            className="flex-1 rounded-2xl border border-line bg-navy-deep py-3.5 font-semibold text-ink-soft"
           >
             Keep it
           </button>

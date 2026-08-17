@@ -10,10 +10,11 @@ import { fileURLToPath } from 'node:url'
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'icons')
 
-const COURT = [14, 75, 69]
-const DEEP = [8, 51, 47]
-const LINE = [235, 240, 233]
-const OPTIC = [199, 230, 63]
+// Pikol sa Paayo: navy court on charcoal, sky lines, orange ball.
+const COURT = [11, 41, 66]
+const DEEP = [23, 25, 28]
+const LINE = [85, 184, 232]
+const OPTIC = [245, 130, 32]
 
 function canvas(size, bg) {
   const px = new Uint8Array(size * size * 4)
@@ -58,15 +59,15 @@ function disc(px, size, cx, cy, r, color) {
 
 /** @param {number} size @param {number} inset fraction kept clear for maskable safe zone */
 function draw(size, inset) {
-  const px = canvas(size, COURT)
+  const px = canvas(size, DEEP)
   const pad = size * inset
   const w = size - pad * 2
   const h = w * 0.62
   const top = (size - h) / 2
   const line = Math.max(2, Math.round(size * 0.014))
 
-  // court surface, a shade deeper than the background
-  rect(px, size, pad, top, pad + w, top + h, DEEP, 0.5)
+  // court surface: navy lifting off the charcoal ground
+  rect(px, size, pad, top, pad + w, top + h, COURT, 1)
   strokeRect(px, size, pad, top, pad + w, top + h, line, LINE, 0.9)
   // net
   rect(px, size, size / 2 - line / 2, top - h * 0.06, size / 2 + line / 2, top + h * 1.06, LINE, 0.95)
@@ -91,7 +92,7 @@ function draw(size, inset) {
     [-0.45, 0.38],
     [0.42, 0.34],
   ]) {
-    disc(px, size, cx + dx * r * 1.4, cy + dy * r * 1.4, hole, DEEP)
+    disc(px, size, cx + dx * r * 1.4, cy + dy * r * 1.4, hole, COURT)
   }
   return px
 }

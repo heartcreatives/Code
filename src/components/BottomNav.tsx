@@ -3,14 +3,14 @@ import { NavLink } from 'react-router-dom'
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   [
     'flex flex-1 flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold',
-    isActive ? 'text-court' : 'text-ink-faint',
+    isActive ? 'text-sky' : 'text-ink-faint',
   ].join(' ')
 
 export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-paper-edge bg-white/95 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-navy-deep/95 backdrop-blur"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex h-[66px] max-w-md items-center px-4">
@@ -26,8 +26,8 @@ export function BottomNav() {
             className={({ isActive }) =>
               [
                 'absolute -top-7 flex h-[62px] w-[62px] items-center justify-center rounded-full',
-                'shadow-lift ring-4 ring-paper transition-transform active:scale-95',
-                isActive ? 'bg-court-deep text-optic' : 'bg-optic text-court-deep',
+                'shadow-lift ring-4 ring-charcoal transition-transform active:scale-95',
+                isActive ? 'bg-navy-lift text-orange ring-sky/40' : 'bg-orange text-charcoal',
               ].join(' ')
             }
           >

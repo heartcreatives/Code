@@ -4,20 +4,26 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
     /* Height of the bottom nav plus the phone's home indicator. */
     --nav-h: calc(66px + env(safe-area-inset-bottom, 0px));
   }
 
   html {
     -webkit-text-size-adjust: 100%;
+    background-color: theme('colors.charcoal.DEFAULT');
   }
 
   body {
-    @apply bg-paper font-body text-ink antialiased;
-    /* A very faint court hatch, so the paper reads as a surface, not a void. */
-    background-image: radial-gradient(rgba(14, 75, 69, 0.05) 1px, transparent 1px);
-    background-size: 22px 22px;
+    @apply bg-charcoal font-body text-ink antialiased;
+    /* Charcoal ground with the navy court glowing up from underneath. */
+    background-image:
+      radial-gradient(100% 45% at 50% 0%, rgba(11, 41, 66, 0.55) 0%, transparent 72%),
+      radial-gradient(rgba(85, 184, 232, 0.05) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      22px 22px;
+    background-attachment: fixed, scroll;
     overscroll-behavior-y: none;
   }
 
@@ -30,12 +36,18 @@
     font-family: inherit;
   }
 
+  /* Native date/time pickers ship a black glyph that vanishes on navy. */
+  input[type='date']::-webkit-calendar-picker-indicator,
+  input[type='time']::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.65);
+  }
+
   :focus-visible {
-    @apply outline-none ring-2 ring-court ring-offset-2 ring-offset-paper;
+    @apply outline-none ring-2 ring-sky ring-offset-2 ring-offset-charcoal;
   }
 
   ::selection {
-    @apply bg-optic text-court-deep;
+    @apply bg-orange text-charcoal;
   }
 }
 
@@ -47,7 +59,7 @@
   }
 
   .card {
-    @apply rounded-card border border-paper-edge bg-white shadow-card;
+    @apply rounded-card border border-line bg-navy shadow-card;
   }
 
   .label {
@@ -55,32 +67,33 @@
   }
 
   .field {
-    @apply w-full rounded-2xl border border-paper-edge bg-paper-soft px-4 py-3.5 text-[16px]
-           text-ink placeholder:text-ink-faint/70 focus:border-court focus:bg-white;
+    @apply w-full rounded-2xl border border-line bg-navy-deep px-4 py-3.5 text-[16px]
+           text-ink placeholder:text-ink-faint/70 focus:border-sky focus:bg-navy;
   }
 
   .field-num {
     @apply num text-right text-[22px] font-semibold;
   }
 
-  /* Primary action: the one place optic-yellow is allowed to shout. */
+  /* Primary action: the one place Paayo orange is allowed to shout. */
   .btn-primary {
-    @apply flex w-full items-center justify-center gap-2 rounded-2xl bg-optic px-5 py-4
-           font-display text-[17px] font-bold text-court-deep shadow-lift
-           active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex w-full items-center justify-center gap-2 rounded-2xl bg-orange px-5 py-4
+           font-display text-[17px] font-bold text-charcoal shadow-lift
+           active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45
+           disabled:shadow-none;
   }
 
   .btn-quiet {
-    @apply rounded-xl border border-paper-edge bg-white px-3 py-2 text-sm font-semibold text-ink-soft
-           active:translate-y-px;
+    @apply rounded-xl border border-line bg-navy-lift px-3 py-2 text-sm font-semibold text-ink-soft
+           active:translate-y-px disabled:opacity-45;
   }
 
   .chip {
-    @apply rounded-full border border-paper-edge bg-white px-3 py-1.5 text-[13px] font-semibold text-ink-soft;
+    @apply rounded-full border border-line bg-navy-lift px-3 py-1.5 text-[13px] font-semibold text-ink-soft;
   }
 
   .chip-on {
-    @apply border-court bg-court text-paper;
+    @apply border-sky bg-sky text-charcoal;
   }
 }
 

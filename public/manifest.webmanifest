@@ -1,13 +1,13 @@
 {
-  "name": "Paayo Court Ledger",
-  "short_name": "Paayo Court",
+  "name": "Pikol sa Paayo — Court Ledger",
+  "short_name": "Pikol sa Paayo",
   "description": "Log court bookings, open play and expenses at Paayo Pickleball.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#EBF0E9",
-  "theme_color": "#0E4B45",
+  "background_color": "#17191C",
+  "theme_color": "#0B2942",
   "categories": ["business", "finance"],
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

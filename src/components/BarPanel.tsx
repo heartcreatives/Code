@@ -60,18 +60,19 @@ export function BarPanel({
                   width={92}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#4A5B57', fontSize: 13, fontWeight: 500 }}
+                  tick={{ fill: '#A8C0D4', fontSize: 13, fontWeight: 500 }}
                 />
                 <Tooltip
-                  cursor={{ fill: 'rgba(14,75,69,0.06)' }}
+                  cursor={{ fill: 'rgba(85,184,232,0.10)' }}
                   formatter={(v: number) => [peso(v), '']}
                   separator=""
                   contentStyle={{
                     borderRadius: 12,
-                    border: '1px solid #DAE2D6',
+                    backgroundColor: '#0F3453',
+                    border: '1px solid #1E4365',
                     fontSize: 13,
                     fontWeight: 600,
-                    color: '#12211F',
+                    color: '#FFFFFF',
                   }}
                 />
                 <Bar dataKey="value" barSize={18} radius={[0, 4, 4, 0]} isAnimationActive={false}>
@@ -84,7 +85,7 @@ export function BarPanel({
                     offset={10}
                     formatter={(v: number) => peso(v)}
                     style={{
-                      fill: '#12211F',
+                      fill: '#FFFFFF',
                       fontSize: 13,
                       fontWeight: 700,
                       fontFamily: '"Space Grotesk", sans-serif',
@@ -110,7 +111,7 @@ export function BarPanel({
             </tbody>
           </table>
 
-          <ul className="mt-3 space-y-1 border-t border-paper-edge pt-3 text-[13px] text-ink-faint">
+          <ul className="mt-3 space-y-1 border-t border-line pt-3 text-[13px] text-ink-faint">
             {rows.map((d) => (
               <li key={d.label} className="flex justify-between gap-3">
                 <span>
