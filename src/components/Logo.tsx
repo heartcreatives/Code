@@ -175,28 +175,29 @@ export function LogoBadge({ size = 148 }: { size?: number }) {
   )
 }
 
-/** The mark plus the name, for the sign-in screen and the app header. */
+/**
+ * The mark plus the name, for the app header. The badge already carries
+ * "PICKLEBALL COURT" in its ring, so the compact form doesn't repeat it —
+ * one line of type beside the mark, and nothing said twice.
+ */
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <Logo size={compact ? 36 : 56} />
+    <div className="flex items-center gap-2.5">
+      <Logo size={compact ? 40 : 56} />
       <div>
         <p
           className={[
             'font-display font-bold uppercase leading-none tracking-[0.1em] text-ink',
-            compact ? 'text-[13px]' : 'text-[15px]',
+            compact ? 'text-[14px]' : 'text-[15px]',
           ].join(' ')}
         >
           Pikol sa <span className="text-orange">Paayo</span>
         </p>
-        <p
-          className={[
-            'mt-1 font-display font-semibold uppercase leading-none tracking-[0.18em] text-sky',
-            compact ? 'text-[9px]' : 'text-[10px]',
-          ].join(' ')}
-        >
-          Pickleball Court
-        </p>
+        {!compact && (
+          <p className="mt-1 font-display text-[10px] font-semibold uppercase leading-none tracking-[0.18em] text-sky">
+            Pickleball Court
+          </p>
+        )}
       </div>
     </div>
   )

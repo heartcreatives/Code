@@ -143,16 +143,21 @@ figure and an orange button read as the same colour at a glance. This rose clear
 every pairing. Nothing relies on colour alone in any case: every figure is
 labelled, and expenses carry a − sign.
 
-**The logo.** Drop the badge artwork in as `public/logo.png` and the app picks
-it up everywhere — the sign-in badge and the header mark both prefer that file
-and fall back to the drawn SVG in `src/components/Logo.tsx` if it isn't there.
-Then run `npm run icons` to rebuild the home-screen icons from it.
+**The logo.** `public/logo.png` is the badge, background removed and scaled to
+512px (249 KB, down from a 2 MB source). The sign-in screen and the header mark
+both use it; if the file is ever missing they fall back to a drawn SVG in
+`src/components/Logo.tsx`, so the app never renders a broken image.
 
-Export it with a **transparent background** if you can: the badge sits on navy,
-and a white square around it would show. If you only have the white-background
-version, the icon script handles it — it flood-fills the white *surround* away
-from the edges inward, so the white lettering inside the badge survives — but
-the in-app `<img>` shows whatever the file contains, white corners included.
+To replace it with new artwork:
+
+```bash
+npm run logo -- path/to/new-badge.png   # removes the background, trims, resizes
+npm run icons                           # rebuilds the home-screen icons from it
+```
+
+`npm run logo` samples the backdrop from the image's corners, so a white export
+and a charcoal one both work, and it floods inward from the edges only — the
+white lettering inside the badge is never touched.
 
 ## Project layout
 
