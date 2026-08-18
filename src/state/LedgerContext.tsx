@@ -35,6 +35,10 @@ interface LedgerValue {
   online: boolean
   queuedCount: number
   addEntry(entry: NewEntry): Promise<{ queued: boolean }>
+  updateEntry(id: string, patch: Partial<NewEntry>): Promise<void>
+  /** Mark several entries released at once — the Owed screen's main action. */
+  releaseEntries(ids: string[], releasedTo: string, releasedOn: string, viaCash: boolean): Promise<void>
+  importEntries(entries: NewEntry[]): Promise<number>
   removeEntry(row: LedgerRow): Promise<void>
   retry(id: string): void
   refresh(): Promise<void>
@@ -139,6 +143,53 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
     [userId, refresh],
   )
 
+  const updateEntry = useCallback<LedgerValue['updateEntry']>(
+    async (id, patch) => {
+      // Optimistic: show the change now, put it back if the write is refused.
+      const snapshot = saved
+      setSaved((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)))
+      try {
+        await store.update(id, patch)
+        await refresh()
+      } catch (err) {
+        setSaved(snapshot)
+        throw err
+      }
+    },
+    [saved, refresh],
+  )
+
+  const releaseEntries = useCallback<LedgerValue['releaseEntries']>(
+    async (ids, releasedTo, releasedOn, viaCash) => {
+      if (ids.length === 0) return
+      const patch = {
+        release_status: (viaCash ? 'released_via_cash' : 'released') as NewEntry['release_status'],
+        released_to: releasedTo.trim() || null,
+        released_on: releasedOn,
+      }
+      const marked = new Set(ids)
+      const snapshot = saved
+      setSaved((prev) => prev.map((e) => (marked.has(e.id) ? { ...e, ...patch } : e)))
+      try {
+        await store.updateMany(ids, patch)
+        await refresh()
+      } catch (err) {
+        setSaved(snapshot)
+        throw err
+      }
+    },
+    [saved, refresh],
+  )
+
+  const importEntries = useCallback<LedgerValue['importEntries']>(
+    async (entries) => {
+      const inserted = await store.insertMany(entries, userId)
+      await refresh()
+      return inserted
+    },
+    [userId, refresh],
+  )
+
   const removeEntry = useCallback<LedgerValue['removeEntry']>(
     async (row) => {
       if (row.pending || row.failed) {
@@ -187,11 +238,28 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
       online,
       queuedCount: outbox.length,
       addEntry,
+      updateEntry,
+      releaseEntries,
+      importEntries,
       removeEntry,
       retry,
       refresh,
     }),
-    [rows, settings, loading, error, online, outbox.length, addEntry, removeEntry, retry, refresh],
+    [
+      rows,
+      settings,
+      loading,
+      error,
+      online,
+      outbox.length,
+      addEntry,
+      updateEntry,
+      releaseEntries,
+      importEntries,
+      removeEntry,
+      retry,
+      refresh,
+    ],
   )
 
   return <LedgerContext.Provider value={value}>{children}</LedgerContext.Provider>

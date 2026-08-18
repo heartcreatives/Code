@@ -1,38 +1,62 @@
 import type { Entry } from './types'
-import { CATEGORY_LABEL, KIND_LABEL, METHOD_LABEL } from './types'
-import { manilaToday } from './time'
+import {
+  CATEGORY_LABEL,
+  CHANNEL_LABEL,
+  KIND_LABEL,
+  PAYMENT_LABEL,
+  RELEASE_LABEL,
+  outstanding,
+} from './types'
+import { manilaToday, weekday } from './time'
 
+/** Column order mirrors the spreadsheet the court is coming from. */
 const HEADERS = [
   'Date',
-  'Time',
+  'Day',
   'Type',
+  'Customer',
+  'Start',
+  'End',
   'Rate',
-  'Hours',
-  'Players',
-  'Fee per player',
+  'Qty',
+  'Unit price',
   'Amount',
-  'Direction',
-  'Method',
+  'Overridden',
+  'Channel',
+  'Payment',
+  'Amount paid',
+  'Balance',
+  'Release',
+  'Released to',
+  'Released on',
   'Category',
   'Note',
 ]
 
 /**
  * Google Sheets and Excel both read this cleanly: CRLF rows, quoted fields,
- * a UTF-8 BOM so ₱ and any Filipino names survive Excel's default import.
+ * and a UTF-8 BOM so ₱ and Filipino names survive Excel's default import.
  */
 export function entriesToCsv(entries: Entry[]): string {
   const rows = entries.map((e) => [
     e.occurred_on,
-    e.occurred_at ?? '',
+    weekday(e.occurred_on),
     KIND_LABEL[e.kind],
+    e.customer ?? '',
+    e.start_time ?? '',
+    e.end_time ?? '',
     e.rate_type ? (e.rate_type === 'peak' ? 'Peak' : 'Non-peak') : '',
-    e.hours ?? '',
-    e.players ?? '',
-    e.fee_per_player ?? '',
+    e.qty ?? '',
+    e.unit_price ?? '',
     e.amount,
-    e.kind === 'expense' ? 'Expense' : 'Money in',
-    METHOD_LABEL[e.method],
+    e.amount_overridden ? 'yes' : '',
+    CHANNEL_LABEL[e.channel],
+    PAYMENT_LABEL[e.payment_status],
+    e.amount_paid ?? '',
+    outstanding(e) || '',
+    RELEASE_LABEL[e.release_status],
+    e.released_to ?? '',
+    e.released_on ?? '',
     e.category ? CATEGORY_LABEL[e.category] : '',
     e.note ?? '',
   ])
@@ -63,3 +87,44 @@ const slug = (s: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || 'ledger'
+
+// ---------------------------------------------------------------------------
+// Reading a CSV back in
+// ---------------------------------------------------------------------------
+
+/** A small RFC-4180 parser: quoted fields, escaped quotes, CRLF or LF. */
+export function parseCsv(text: string): string[][] {
+  const clean = text.replace(/^﻿/, '')
+  const rows: string[][] = []
+  let row: string[] = []
+  let field = ''
+  let quoted = false
+
+  for (let i = 0; i < clean.length; i++) {
+    const c = clean[i]
+    if (quoted) {
+      if (c === '"') {
+        if (clean[i + 1] === '"') {
+          field += '"'
+          i++
+        } else quoted = false
+      } else field += c
+      continue
+    }
+    if (c === '"') quoted = true
+    else if (c === ',') {
+      row.push(field)
+      field = ''
+    } else if (c === '\n') {
+      row.push(field)
+      rows.push(row)
+      row = []
+      field = ''
+    } else if (c !== '\r') field += c
+  }
+  if (field !== '' || row.length) {
+    row.push(field)
+    rows.push(row)
+  }
+  return rows.filter((r) => r.some((c) => c.trim() !== ''))
+}

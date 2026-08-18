@@ -10,6 +10,8 @@ import { LedgerProvider } from './state/LedgerContext'
 // history load after the shell rather than blocking first paint.
 const Dashboard = lazy(() => import('./screens/Dashboard').then((m) => ({ default: m.Dashboard })))
 const History = lazy(() => import('./screens/History').then((m) => ({ default: m.History })))
+const Owed = lazy(() => import('./screens/Owed').then((m) => ({ default: m.Owed })))
+const Import = lazy(() => import('./screens/Import').then((m) => ({ default: m.Import })))
 
 export default function App() {
   const { ready, session, demo, access } = useAuth()
@@ -42,7 +44,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/log" element={<Log />} />
+            <Route path="/owed" element={<Owed />} />
             <Route path="/history" element={<History />} />
+            <Route path="/import" element={<Import />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>

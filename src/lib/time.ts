@@ -130,3 +130,60 @@ export const monthName = (dateStr: string) =>
   new Intl.DateTimeFormat('en-PH', { timeZone: 'UTC', month: 'long', year: 'numeric' }).format(
     new Date(Date.UTC(Number(dateStr.slice(0, 4)), Number(dateStr.slice(5, 7)) - 1, 1)),
   )
+
+// ---------------------------------------------------------------------------
+// Week boundaries and weekday labels
+// ---------------------------------------------------------------------------
+
+/**
+ * Monday-start weeks. The court's takings are read as a business week, and a
+ * Sunday-start week would split a Friday–Saturday evening rush across two
+ * periods.
+ */
+export function startOfWeek(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  const dow = (dt.getUTCDay() + 6) % 7 // Monday = 0
+  return addDays(dateStr, -dow)
+}
+
+export function endOfWeek(dateStr: string): string {
+  return addDays(startOfWeek(dateStr), 6)
+}
+
+const weekdayFormatter = new Intl.DateTimeFormat('en-PH', { timeZone: 'UTC', weekday: 'long' })
+const weekdayShortFormatter = new Intl.DateTimeFormat('en-PH', { timeZone: 'UTC', weekday: 'short' })
+
+/**
+ * The sheet had a Day column typed by hand. Here it is derived, so it can
+ * never disagree with the date.
+ */
+export function weekday(dateStr: string, short = false): string {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const asUtc = new Date(Date.UTC(y, m - 1, d))
+  return (short ? weekdayShortFormatter : weekdayFormatter).format(asUtc)
+}
+
+/**
+ * Hours between two HH:MM times, to two decimals. An end time at or before the
+ * start is read as running past midnight — the court books blocks that end at
+ * 12MN and beyond.
+ */
+export function hoursBetween(start: string | null, end: string | null): number | null {
+  const a = minutesOf(start)
+  const b = minutesOf(end)
+  if (a === null || b === null) return null
+  const span = b > a ? b - a : b + 24 * 60 - a
+  if (span <= 0 || span > 18 * 60) return null
+  return Math.round((span / 60) * 100) / 100
+}
+
+function minutesOf(time: string | null): number | null {
+  if (!time) return null
+  const m = /^(\d{1,2}):(\d{2})/.exec(time)
+  if (!m) return null
+  const h = Number(m[1])
+  const min = Number(m[2])
+  if (h < 0 || h > 23 || min < 0 || min > 59) return null
+  return h * 60 + min
+}

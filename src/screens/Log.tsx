@@ -3,61 +3,113 @@ import { Segmented } from '../components/Segmented'
 import { useToast } from '../components/Toast'
 import { useLedger } from '../state/LedgerContext'
 import { CourtLines } from '../components/CourtLines'
-import { bookingAmount, openPlayAmount, rateFor, rateLabel, rateWindow, suggestRateType } from '../lib/pricing'
-import { manilaTimeNow, manilaToday } from '../lib/time'
+import {
+  QTY_LABEL,
+  UNIT_LABEL,
+  computeAmount,
+  defaultUnitPrice,
+  rateLabel,
+  rateWindow,
+  suggestRateType,
+} from '../lib/pricing'
+import { hoursBetween, manilaTimeNow, manilaToday, weekday } from '../lib/time'
 import { peso } from '../lib/format'
-import { CATEGORIES, METHODS, type EntryKind, type ExpenseCategory, type PayMethod, type RateType } from '../lib/types'
+import {
+  CATEGORIES,
+  CHANNELS,
+  PAYMENT_STATUSES,
+  RELEASE_RECIPIENTS,
+  RELEASE_STATUSES,
+  type Channel,
+  type EntryKind,
+  type ExpenseCategory,
+  type PaymentStatus,
+  type RateType,
+  type ReleaseStatus,
+} from '../lib/types'
 
-const LAST_METHOD_KEY = 'paayo.lastMethod'
+const LAST_CHANNEL_KEY = 'paayo.lastChannel'
+
+const KIND_OPTIONS: { value: EntryKind; label: string; sub: string }[] = [
+  { value: 'court_booking', label: 'Court', sub: 'Booking' },
+  { value: 'open_play', label: 'Open play', sub: 'Per player' },
+  { value: 'paddle_rent', label: 'Paddle', sub: 'Rent' },
+  { value: 'machine_rent', label: 'Machine', sub: 'Rent' },
+  { value: 'expense', label: 'Expense', sub: 'Money out' },
+]
 
 export function Log() {
   const { addEntry, settings, online } = useLedger()
   const toast = useToast()
   const amountRef = useRef<HTMLInputElement>(null)
 
-  const [kind, setKind] = useState<EntryKind>('booking')
+  const [kind, setKind] = useState<EntryKind>('court_booking')
   const [date, setDate] = useState(manilaToday)
-  const [time, setTime] = useState(manilaTimeNow)
-  const [rateType, setRateType] = useState<RateType>(() => suggestRateType(manilaTimeNow(), settings))
-  const [hoursText, setHoursText] = useState('1')
-  const [playersText, setPlayersText] = useState('')
-  const [feeText, setFeeText] = useState(() =>
-    settings.open_play_fee ? String(settings.open_play_fee) : '',
+  const [startTime, setStartTime] = useState(manilaTimeNow)
+  const [endTime, setEndTime] = useState('')
+  const [rateType, setRateType] = useState<RateType>(() =>
+    suggestRateType(manilaTimeNow(), settings),
   )
+  const [qtyText, setQtyText] = useState('')
+  const [qtyEdited, setQtyEdited] = useState(false)
+  const [unitText, setUnitText] = useState('')
+  const [unitEdited, setUnitEdited] = useState(false)
   const [amountText, setAmountText] = useState('')
   const [amountEdited, setAmountEdited] = useState(false)
-  const [method, setMethod] = useState<PayMethod>(
-    () => (localStorage.getItem(LAST_METHOD_KEY) as PayMethod | null) ?? 'cash',
+  const [channel, setChannel] = useState<Channel>(
+    () => (localStorage.getItem(LAST_CHANNEL_KEY) as Channel | null) ?? 'cash',
   )
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('paid')
+  const [paidText, setPaidText] = useState('')
+  const [releaseStatus, setReleaseStatus] = useState<ReleaseStatus>('not_released')
+  const [releasedTo, setReleasedTo] = useState('')
+  const [customer, setCustomer] = useState('')
   const [category, setCategory] = useState<ExpenseCategory>('supplies')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const hours = toNumber(hoursText)
-  const players = toNumber(playersText)
-  const fee = toNumber(feeText)
+  const qty = toNumber(qtyText)
+  const unitPrice = toNumber(unitText)
   const amount = toNumber(amountText)
+  const amountPaid = toNumber(paidText)
 
-  // Auto-fill: booking = hours × rate. Any manual edit to the amount sticks
-  // until the time, hours or rate changes again.
+  const isBooking = kind === 'court_booking'
+  const isExpense = kind === 'expense'
+  const countsQty = !isExpense
+
+  // Start and end time fill in the hours — staff used to type both the times
+  // and the hours into the sheet, which is the same fact entered twice.
+  const derivedHours = useMemo(
+    () => (isBooking ? hoursBetween(startTime, endTime) : null),
+    [isBooking, startTime, endTime],
+  )
+
   useEffect(() => {
-    if (kind !== 'booking' || amountEdited) return
-    setAmountText(hours && hours > 0 ? String(bookingAmount(hours, rateType, settings)) : '')
-  }, [kind, hours, rateType, settings, amountEdited])
+    if (!isBooking || qtyEdited || derivedHours === null) return
+    setQtyText(String(derivedHours))
+  }, [isBooking, derivedHours, qtyEdited])
 
-  // Auto-fill: open play = players × fee per player. With no fixed fee at this
-  // court, staff can also just type the total and leave these blank.
+  // Unit price follows the kind (and the rate, for bookings) until touched.
   useEffect(() => {
-    if (kind !== 'open_play' || amountEdited) return
-    if (players && players > 0 && fee && fee > 0) {
-      setAmountText(String(openPlayAmount(players, fee)))
-    }
-  }, [kind, players, fee, amountEdited])
+    if (unitEdited || isExpense) return
+    const preset = defaultUnitPrice(kind, rateType, settings)
+    setUnitText(preset === null ? '' : String(preset))
+  }, [kind, rateType, settings, unitEdited, isExpense])
 
-  const changeTime = useCallback(
+  // Amount = qty × unit price, unless staff typed one. Discounts are common,
+  // so the typed figure always wins and is recorded as an override.
+  useEffect(() => {
+    if (amountEdited || isExpense) return
+    const computed = computeAmount(qty, unitPrice)
+    if (computed !== null) setAmountText(String(computed))
+  }, [qty, unitPrice, amountEdited, isExpense])
+
+  const changeStart = useCallback(
     (next: string) => {
-      setTime(next)
-      setRateType(suggestRateType(next, settings)) // suggestion, still editable below
+      setStartTime(next)
+      setRateType(suggestRateType(next, settings)) // a suggestion; still editable
+      setQtyEdited(false)
+      setUnitEdited(false)
       setAmountEdited(false)
     },
     [settings],
@@ -65,55 +117,73 @@ export function Log() {
 
   const changeKind = useCallback((next: EntryKind) => {
     setKind(next)
+    setQtyEdited(false)
+    setUnitEdited(false)
     setAmountEdited(false)
     setAmountText('')
+    setQtyText('')
   }, [])
 
-  const suggested = useMemo(() => suggestRateType(time, settings), [time, settings])
-  const rate = rateFor(rateType, settings)
+  const suggested = useMemo(() => suggestRateType(startTime, settings), [startTime, settings])
 
   const problem = useMemo(() => {
     if (!date) return 'Pick a date.'
     if (!amount || amount <= 0) return 'Enter an amount.'
-    if (kind === 'booking' && (!hours || hours <= 0)) return 'Enter how many hours.'
+    if (paymentStatus === 'partial' && (!amountPaid || amountPaid <= 0)) {
+      return 'Enter how much was paid.'
+    }
+    if (paymentStatus === 'partial' && amountPaid && amountPaid >= amount) {
+      return 'Partial payment must be less than the amount.'
+    }
     return null
-  }, [date, amount, kind, hours])
+  }, [date, amount, paymentStatus, amountPaid])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (problem || saving) return
     setSaving(true)
-    localStorage.setItem(LAST_METHOD_KEY, method)
+    localStorage.setItem(LAST_CHANNEL_KEY, channel)
 
     try {
       const { queued } = await addEntry({
         kind,
         occurred_on: date,
-        occurred_at: kind === 'expense' ? null : time || null,
-        rate_type: kind === 'booking' ? rateType : null,
-        hours: kind === 'booking' ? hours : null,
-        players: kind === 'open_play' ? players : null,
-        fee_per_player: kind === 'open_play' ? fee : null,
+        start_time: isExpense ? null : startTime || null,
+        end_time: isBooking ? endTime || null : null,
+        rate_type: isBooking ? rateType : null,
+        qty: countsQty ? qty : null,
+        unit_price: countsQty ? unitPrice : null,
         amount: amount!,
-        method,
-        category: kind === 'expense' ? category : null,
+        amount_overridden: amountEdited,
+        channel,
+        payment_status: isExpense ? 'paid' : paymentStatus,
+        amount_paid: paymentStatus === 'partial' && !isExpense ? amountPaid : null,
+        release_status: isExpense ? 'released' : releaseStatus,
+        released_to: releasedTo.trim() || null,
+        released_on:
+          releaseStatus === 'released' || releaseStatus === 'released_via_cash' ? date : null,
+        customer: customer.trim() || null,
+        category: isExpense ? category : null,
         note: note.trim() || null,
       })
 
       toast(
         queued
           ? `Saved offline · ${peso(amount!)} — it will sync when you're back online`
-          : `${kind === 'expense' ? 'Expense' : 'Money in'} · ${peso(amount!)} logged`,
+          : `${isExpense ? 'Expense' : 'Money in'} · ${peso(amount!)} logged`,
         queued ? 'warn' : 'ok',
       )
 
-      // Reset for the next entry, but stay here: staff log several in a row.
+      // Reset for the next entry but stay here — staff log several in a row.
       setAmountText('')
       setAmountEdited(false)
+      setQtyText('')
+      setQtyEdited(false)
+      setEndTime('')
       setNote('')
-      setPlayersText('')
-      if (kind === 'booking') setHoursText('1')
-      if (!settings.open_play_fee) setFeeText('')
+      setCustomer('')
+      setPaidText('')
+      setPaymentStatus('paid')
       amountRef.current?.blur()
     } catch (err) {
       toast(`Couldn't save: ${(err as Error).message}`, 'error')
@@ -127,143 +197,139 @@ export function Log() {
       <header className="pt-1">
         <h1 className="font-display text-2xl font-bold text-white">Log an entry</h1>
         <p className="mt-1 text-[15px] text-ink-soft">
-          {online ? 'Everyone at the court sees this within seconds.' : 'Offline — entries queue and sync later.'}
+          {online
+            ? 'Everyone at the court sees this within seconds.'
+            : 'Offline — entries queue and sync later.'}
         </p>
       </header>
 
-      <Segmented
-        label="Entry type"
-        value={kind}
-        onChange={changeKind}
-        options={[
-          { value: 'booking', label: 'Court', sub: 'Booking' },
-          { value: 'open_play', label: 'Open play', sub: 'Per player' },
-          { value: 'expense', label: 'Expense', sub: 'Money out' },
-        ]}
-      />
+      <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1" role="group" aria-label="Entry type">
+        {KIND_OPTIONS.map((k) => (
+          <button
+            key={k.value}
+            type="button"
+            aria-pressed={kind === k.value}
+            onClick={() => changeKind(k.value)}
+            className={`chip shrink-0 snap-start ${kind === k.value ? 'chip-on' : ''}`}
+          >
+            {k.label}
+          </button>
+        ))}
+      </div>
 
       <section className="card space-y-4 p-4">
-        <div className={kind === 'expense' ? '' : 'grid grid-cols-2 gap-3'}>
-          <div>
-            <label className="label" htmlFor="date">
-              Date
-            </label>
-            <input
-              id="date"
-              type="date"
-              className="field"
-              value={date}
-              max={manilaToday()}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-          </div>
-          {kind !== 'expense' && (
-            <div>
-              <label className="label" htmlFor="time">
-                {kind === 'booking' ? 'Start time' : 'Session time'}
-              </label>
-              <input
-                id="time"
-                type="time"
-                className="field"
-                value={time}
-                onChange={(e) => changeTime(e.target.value)}
-              />
-            </div>
-          )}
+        <div>
+          <label className="label" htmlFor="date">
+            Date
+          </label>
+          <input
+            id="date"
+            type="date"
+            className="field"
+            value={date}
+            max={manilaToday()}
+            onChange={(e) => setDate(e.target.value)}
+            required
+          />
+          {date && <p className="mt-1.5 text-[13px] text-ink-faint">{weekday(date)}</p>}
         </div>
 
-        {kind === 'booking' && (
-          <>
+        {!isExpense && (
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <span className="label">Rate</span>
-              <Segmented
-                size="sm"
-                label="Rate type"
-                value={rateType}
-                onChange={(v) => {
-                  setRateType(v)
-                  setAmountEdited(false)
-                }}
-                options={[
-                  { value: 'non_peak', label: 'Non-peak', sub: peso(settings.non_peak_rate) + '/hr' },
-                  { value: 'peak', label: 'Peak', sub: peso(settings.peak_rate) + '/hr' },
-                ]}
-              />
-              <p className="mt-2 text-[13px] text-ink-faint">
-                {rateWindow[rateType]} ·{' '}
-                {rateType === suggested
-                  ? `suggested from ${time || 'the start time'}`
-                  : `overriding the ${rateLabel[suggested].toLowerCase()} suggestion`}
-              </p>
-            </div>
-
-            <div>
-              <label className="label" htmlFor="hours">
-                Hours
+              <label className="label" htmlFor="start">
+                {isBooking ? 'Start' : 'Time'}
               </label>
-              <div className="flex gap-2">
+              <input
+                id="start"
+                type="time"
+                className="field"
+                value={startTime}
+                onChange={(e) => changeStart(e.target.value)}
+              />
+            </div>
+            {isBooking && (
+              <div>
+                <label className="label" htmlFor="end">
+                  End
+                </label>
                 <input
-                  id="hours"
-                  className="field field-num w-24"
-                  inputMode="decimal"
-                  value={hoursText}
+                  id="end"
+                  type="time"
+                  className="field"
+                  value={endTime}
                   onChange={(e) => {
-                    setHoursText(e.target.value)
+                    setEndTime(e.target.value)
+                    setQtyEdited(false)
                     setAmountEdited(false)
                   }}
                 />
-                <div className="flex flex-1 flex-wrap items-center gap-1.5">
-                  {['1', '1.5', '2', '3'].map((h) => (
-                    <button
-                      key={h}
-                      type="button"
-                      className={`chip ${hoursText === h ? 'chip-on' : ''}`}
-                      onClick={() => {
-                        setHoursText(h)
-                        setAmountEdited(false)
-                      }}
-                    >
-                      {h}h
-                    </button>
-                  ))}
-                </div>
               </div>
-            </div>
-          </>
+            )}
+          </div>
         )}
 
-        {kind === 'open_play' && (
+        {isBooking && (
+          <div>
+            <span className="label">Rate</span>
+            <Segmented
+              size="sm"
+              label="Rate type"
+              value={rateType}
+              onChange={(v) => {
+                setRateType(v)
+                setUnitEdited(false)
+                setAmountEdited(false)
+              }}
+              options={[
+                { value: 'non_peak', label: 'Non-peak', sub: `${peso(settings.non_peak_rate)}/hr` },
+                { value: 'peak', label: 'Peak', sub: `${peso(settings.peak_rate)}/hr` },
+              ]}
+            />
+            <p className="mt-2 text-[13px] text-ink-faint">
+              {rateWindow[rateType]} ·{' '}
+              {rateType === suggested
+                ? `suggested from ${startTime || 'the start time'}`
+                : `overriding the ${rateLabel[suggested].toLowerCase()} suggestion`}
+            </p>
+          </div>
+        )}
+
+        {countsQty && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label" htmlFor="players">
-                Players
+              <label className="label" htmlFor="qty">
+                {QTY_LABEL[kind]}
               </label>
               <input
-                id="players"
+                id="qty"
                 className="field field-num"
-                inputMode="numeric"
+                inputMode="decimal"
                 placeholder="0"
-                value={playersText}
+                value={qtyText}
                 onChange={(e) => {
-                  setPlayersText(e.target.value)
+                  setQtyText(e.target.value)
+                  setQtyEdited(true)
                   setAmountEdited(false)
                 }}
               />
+              {isBooking && derivedHours !== null && !qtyEdited && (
+                <p className="mt-1.5 text-[13px] text-sky">From the times</p>
+              )}
             </div>
             <div>
-              <label className="label" htmlFor="fee">
-                Fee each
+              <label className="label" htmlFor="unit">
+                {UNIT_LABEL[kind]}
               </label>
               <input
-                id="fee"
+                id="unit"
                 className="field field-num"
                 inputMode="decimal"
                 placeholder="₱"
-                value={feeText}
+                value={unitText}
                 onChange={(e) => {
-                  setFeeText(e.target.value)
+                  setUnitText(e.target.value)
+                  setUnitEdited(true)
                   setAmountEdited(false)
                 }}
               />
@@ -271,7 +337,7 @@ export function Log() {
           </div>
         )}
 
-        {kind === 'expense' && (
+        {isExpense && (
           <div>
             <span className="label">Category</span>
             <div className="flex flex-wrap gap-2">
@@ -296,14 +362,14 @@ export function Log() {
         <CourtLines className="absolute inset-0 h-full w-full text-sky opacity-30" />
         <div className="relative">
           <label className="label !text-ink-soft" htmlFor="amount">
-            {kind === 'expense' ? 'Cost' : 'Amount'}
+            {isExpense ? 'Cost' : 'Amount'}
           </label>
           <div className="flex items-baseline gap-2">
             <span className="num text-3xl font-bold text-orange">₱</span>
             <input
               id="amount"
               ref={amountRef}
-              className="num w-full bg-transparent text-right text-4xl font-bold text-orange placeholder:text-white/30 focus:outline-none"
+              className="num w-full bg-transparent text-right text-4xl font-bold text-orange placeholder:text-ink-faint/50 focus:outline-none"
               inputMode="decimal"
               placeholder="0"
               value={amountText}
@@ -315,31 +381,144 @@ export function Log() {
             />
           </div>
           <p id="amount-help" className="mt-2 text-[13px] text-ink-soft">
-            {kind === 'booking' &&
-              (amountEdited
-                ? 'Edited by hand — change time, hours or rate to recalculate.'
-                : `${hoursText || 0} × ${peso(rate)} · auto-filled, tap to change`)}
-            {kind === 'open_play' &&
-              (amountEdited
-                ? 'Edited by hand — change players or fee to recalculate.'
-                : players && fee
-                  ? `${players} × ${peso(fee)} · auto-filled, tap to change`
-                  : 'Enter players and fee each, or just type the total.')}
-            {kind === 'expense' && 'What this cost the court.'}
+            {isExpense
+              ? 'What this cost the court.'
+              : amountEdited
+                ? 'Typed by hand — saved as an override. Change the qty or price to recalculate.'
+                : qty && unitPrice
+                  ? `${qty} × ${peso(unitPrice)} · auto-filled, tap to change`
+                  : 'Enter the qty and price, or just type the total.'}
           </p>
         </div>
       </section>
 
       <section className="card space-y-4 p-4">
         <div>
-          <span className="label">Paid by</span>
-          <Segmented
-            label="Payment method"
-            value={method}
-            onChange={setMethod}
-            options={METHODS.map((m) => ({ value: m.value, label: m.label, sub: m.sub }))}
-          />
+          <span className="label">Paid into</span>
+          <div className="grid grid-cols-2 gap-2">
+            {CHANNELS.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                aria-pressed={channel === c.value}
+                onClick={() => setChannel(c.value)}
+                className={[
+                  'rounded-2xl border px-3 py-3 text-left transition-colors',
+                  channel === c.value
+                    ? 'border-sky bg-sky text-charcoal'
+                    : 'border-line bg-navy-deep text-ink-soft',
+                ].join(' ')}
+              >
+                <span className="block font-display text-[15px] font-semibold leading-tight">
+                  {c.short}
+                </span>
+                <span
+                  className={[
+                    'mt-0.5 block text-[11px] leading-tight',
+                    channel === c.value ? 'text-charcoal/70' : 'text-ink-faint',
+                  ].join(' ')}
+                >
+                  {c.label}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
+
+        {!isExpense && (
+          <>
+            <div>
+              <span className="label">Payment</span>
+              <Segmented
+                size="sm"
+                label="Payment status"
+                value={paymentStatus}
+                onChange={setPaymentStatus}
+                options={PAYMENT_STATUSES.map((p) => ({ value: p.value, label: p.label }))}
+              />
+            </div>
+
+            {paymentStatus === 'partial' && (
+              <div>
+                <label className="label" htmlFor="paid">
+                  Amount paid so far
+                </label>
+                <input
+                  id="paid"
+                  className="field field-num"
+                  inputMode="decimal"
+                  placeholder="₱"
+                  value={paidText}
+                  onChange={(e) => setPaidText(e.target.value)}
+                />
+                {amount && amountPaid ? (
+                  <p className="mt-1.5 text-[13px] text-held">
+                    {peso(Math.max(0, amount - amountPaid))} still owed
+                  </p>
+                ) : null}
+              </div>
+            )}
+
+            <div>
+              <span className="label">Released</span>
+              <div className="flex flex-wrap gap-2">
+                {RELEASE_STATUSES.map((r) => (
+                  <button
+                    key={r.value}
+                    type="button"
+                    aria-pressed={releaseStatus === r.value}
+                    className={`chip ${releaseStatus === r.value ? 'chip-on' : ''}`}
+                    onClick={() => setReleaseStatus(r.value)}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {releaseStatus !== 'not_released' && (
+              <div>
+                <label className="label" htmlFor="released-to">
+                  Released to
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="released-to"
+                    className="field"
+                    placeholder="Name"
+                    value={releasedTo}
+                    onChange={(e) => setReleasedTo(e.target.value)}
+                  />
+                  {RELEASE_RECIPIENTS.map((person) => (
+                    <button
+                      key={person}
+                      type="button"
+                      className={`chip shrink-0 ${releasedTo === person ? 'chip-on' : ''}`}
+                      onClick={() => setReleasedTo(person)}
+                    >
+                      {person}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="label" htmlFor="customer">
+                Customer <span className="font-normal normal-case tracking-normal">(optional)</span>
+              </label>
+              <input
+                id="customer"
+                className="field"
+                placeholder="Name, group, or walk-in"
+                value={customer}
+                onChange={(e) => setCustomer(e.target.value)}
+                maxLength={80}
+              />
+            </div>
+          </>
+        )}
+
         <div>
           <label className="label" htmlFor="note">
             Note <span className="font-normal normal-case tracking-normal">(optional)</span>
@@ -347,12 +526,10 @@ export function Log() {
           <input
             id="note"
             className="field"
-            placeholder={
-              kind === 'expense' ? 'Supplier or what it was for' : 'Court 1, customer name…'
-            }
+            placeholder={isExpense ? 'Supplier or what it was for' : 'Court 1, anything worth knowing'}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            maxLength={120}
+            maxLength={160}
           />
         </div>
       </section>
@@ -362,7 +539,7 @@ export function Log() {
           ? 'Saving…'
           : problem
             ? problem
-            : `Save ${kind === 'expense' ? 'expense' : ''} ${peso(amount ?? 0)}`.replace('  ', ' ')}
+            : `Save ${isExpense ? 'expense' : ''} ${peso(amount ?? 0)}`.replace('  ', ' ')}
       </button>
     </form>
   )

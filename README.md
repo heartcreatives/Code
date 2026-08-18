@@ -1,12 +1,16 @@
-# Paayo Court Ledger
+# Pikol sa Paayo — Court Ledger
 
-A phone-first web app for logging the finances of the Paayo pickleball court in Tagum
-City. Four staff, one shared set of books: court bookings, open play and expenses go in
-from any phone, and the dashboard updates on everyone else's within seconds.
+A phone-first web app for the finances of the Pikol sa Paayo pickleball court in Tagum City.
+Four staff take payments courtside and log them into one shared ledger, which answers, at any
+moment: what came in and through which channel, who still owes us, and which collected money
+has been released.
 
-- **Money in / out** — court bookings (peak & non-peak), open play, categorised expenses
-- **Channels** — Cash, GCash · Paayo Café, Maya · Online booking, split out for reconciliation
-- **Live** — a sale logged at the court appears on the other phones through Supabase Realtime
+It replaces a Google Sheet, and is built to make that sheet's failure modes impossible.
+
+- **Five entry types** — court booking, open play, paddle rent, machine rent, expense
+- **Four channels** — Cash, GCash 1 – Akiss, Maya, GCash 2 – Heart, split out for reconciliation
+- **Payment and release tracked separately** — money can be collected but not yet handed over
+- **Live** — an entry logged at the court appears on the other phones within seconds
 - **Offline-safe** — entries queue on the phone and sync when the signal comes back
 - **Installable** — add to home screen, works one-handed
 
@@ -47,7 +51,7 @@ VITE_ENABLE_SEED=true npm run dev
 4. Open **SQL Editor** → **New query**. Paste the entire contents of
    [`supabase/schema.sql`](supabase/schema.sql) and press **Run**. This creates the
    `entries` and `settings` tables, the allowlist, the Row Level Security policies, and
-   turns on Realtime.
+   turns on Realtime. It is safe to run twice.
 5. Open **Table Editor → allowlist** and replace `you@example.com` with the four staff
    email addresses, one row each. **Anyone not in this table cannot read or write a single
    row**, even with a valid login.
@@ -63,10 +67,13 @@ VITE_ENABLE_SEED=true npm run dev
 7. Restart `npm run dev`. The sign-in screen now asks for an email instead of dropping
    you straight into demo mode.
 
-**Changing prices later:** Table Editor → `settings` → edit the row. `non_peak_rate` and
-`peak_rate` are the hourly court rates; `open_play_fee` is left empty on purpose, because
-the open play fee varies per session — set it to a number if the court ever settles on a
-fixed fee and it will prefill instead.
+**Changing prices later:** Table Editor → `settings` → edit the row — `non_peak_rate`,
+`peak_rate`, `open_play_fee`, `paddle_rent_price`, `machine_rent_price`. Every phone picks the
+new prices up on next load.
+
+`machine_rent_price` ships **empty on purpose**, because the court hasn't set one — the Log
+screen asks for it each time rather than prefilling a number that might be wrong. Put a value
+in and it starts prefilling.
 
 ### 2. Netlify (the hosting)
 
@@ -108,15 +115,43 @@ fixed fee and it will prefill instead.
 |---|---|
 | Non-peak | 5:00AM–4:00PM, ₱200/hr |
 | Peak | 5:00PM–12:00MN, ₱250/hr |
-| Rate suggestion | Start hour 17–23 suggests **Peak**, anything else **Non-peak** — always overridable with the toggle, which is how the 4–5PM edge and after-midnight sessions are handled |
-| Booking amount | `hours × rate`, auto-filled. Editing it by hand sticks until the time, hours or rate changes again |
-| Open play | `players × fee each`, auto-filled; or type the total directly and leave those blank |
-| Expense | Cost plus a category and the method it was paid from |
+| Hours | Typed once, as a start and end time — the hours fill themselves in, and a block ending after midnight is handled |
+| Rate suggestion | Taken from the start hour (17–23 → peak), always overridable. That is what covers the 4:30–5:30PM booking charged non-peak, and long blocks charged at one rate |
+| Amount | `qty × unit price`, auto-filled. Type over it and the entry is saved as **overridden** — that is how discounts are recorded rather than lost |
+| Open play | Either per player (players × fee) or booked as court hours under one organiser — log the second as a court booking with the organiser as customer |
+| Paddle / machine rent | qty × unit price from settings. These two are what make up **Cyril's payout** |
+| Payment | `paid`, `partial` (records how much came in; the rest becomes a receivable) or `unpaid` |
+| Release | Separate from payment: `not released`, `released`, `released via cash`, `to confirm`, plus who it went to and when |
 
-Dates are the Manila business date, taken from `Asia/Manila` rather than the phone clock
-or UTC, so a 9PM entry never lands on the wrong day's takings.
+Money in counts what has **actually been collected** — a partial payment contributes only the
+part that was received, and the remainder shows up under Money owed. Dates are the Manila
+business date, taken from `Asia/Manila` rather than the phone clock, and the day of the week is
+derived from the date so the two can never disagree.
 
----
+**Every total is computed by walking all matching records.** There is no code path anywhere that
+refers to a record by position, which is what made the old `=SUM(I3,I5,I8,…)` totals silently
+drop later rows.
+
+## Screens
+
+- **Log** — five types across the top, then only the fields that type needs.
+- **Home** — period selector (today, this week, this month, last month, all time), KPIs, money in
+  by channel, revenue by type, expenses by category. Updates live.
+- **Owed** — receivables, money collected but not released (split by channel and by person),
+  Cyril's payout, and bulk mark-as-released.
+- **History** — grouped by day with the day's net, filters for type, channel, payment and release,
+  customer search, edit, delete, and CSV export.
+- **Import** — one-time load of the old spreadsheet: pick the CSV, check the column mapping, review
+  what the parser was unsure about, then import. Reachable from History → Import.
+
+### Importing the old spreadsheet
+
+Export the Log tab as CSV, then open History → **Import**. The columns are matched by name and
+you can correct any of them. The old free-text notes are read into the new fields —
+`released` → released, `not released` → not released, `released - thru cash` → released via cash,
+`released - to confirm` → to confirm, `not paid` → unpaid — and anything that doesn't match a known
+phrase is **listed for you to look at before importing**, never guessed. A note that just says
+"GCash" is flagged too, because only a person knows whether that is Akiss or Heart.
 
 ## Brand
 

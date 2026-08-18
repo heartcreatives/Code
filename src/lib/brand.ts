@@ -20,6 +20,12 @@ export const BRAND = {
    * close to tell apart at a glance. This rose-red clears every pair.
    */
   spend: '#E5486B',
+  /**
+   * Money owed to us, or collected but not yet handed over. Warm so it reads
+   * as "needs attention" rather than "error", and yellow enough to stay clear
+   * of the orange primary action beside it.
+   */
+  held: '#EFC94C',
 } as const
 
 /** Money in reads sky blue; money out reads rose. Never colour alone — every
@@ -28,4 +34,5 @@ export const CHART = {
   moneyIn: BRAND.sky,
   revenue: BRAND.orange,
   expense: BRAND.spend,
+  held: BRAND.held,
 } as const

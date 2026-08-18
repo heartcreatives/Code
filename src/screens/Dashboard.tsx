@@ -9,7 +9,7 @@ import { useLedger } from '../state/LedgerContext'
 import { useAuth } from '../state/AuthContext'
 import { PERIODS, inRange, rangeFor, summarise, type Period } from '../lib/analytics'
 import { hours as fmtHours, peso, pesoSigned, plural } from '../lib/format'
-import { CATEGORY_LABEL } from '../lib/types'
+import { CATEGORY_LABEL, CHANNELS, KIND_LABEL } from '../lib/types'
 import { clearSampleData, loadSampleData, seedEnabled } from '../lib/seed'
 import { CHART } from '../lib/brand'
 
@@ -139,7 +139,7 @@ export function Dashboard() {
         />
       ) : summary.entryCount === 0 ? (
         <EmptyState
-          title={`Nothing logged for ${range.label.toLowerCase()}`}
+          title={`Nothing logged for ${range.label}`}
           body="Pick another period above, or log what just came in at the court."
           actionLabel="Log an entry"
         />
@@ -150,21 +150,20 @@ export function Dashboard() {
             subtitle="Money in by channel — reconcile against your GCash and Maya payouts"
             color={CHART.moneyIn}
             emptyText="No money in for this period yet."
-            data={[
-              { label: 'Cash', value: summary.byMethod.cash },
-              { label: 'GCash', value: summary.byMethod.gcash, meta: 'Paayo Café' },
-              { label: 'Maya', value: summary.byMethod.maya, meta: 'Online booking' },
-            ]}
+            data={CHANNELS.map((c) => ({
+              label: c.short,
+              value: summary.byChannel[c.value],
+              meta: c.label === c.short ? undefined : c.label,
+            }))}
           />
 
           <BarPanel
             title="Revenue by type"
             color={CHART.revenue}
             emptyText="No revenue for this period yet."
-            data={[
-              { label: 'Court bookings', value: summary.byType.bookings },
-              { label: 'Open play', value: summary.byType.openPlay },
-            ]}
+            data={(['court_booking', 'open_play', 'paddle_rent', 'machine_rent'] as const).map(
+              (k) => ({ label: KIND_LABEL[k], value: summary.byKind[k] }),
+            )}
           />
 
           <BarPanel
@@ -181,13 +180,11 @@ export function Dashboard() {
             <section className="card p-4">
               <h2 className="font-display text-[17px] font-bold text-ink">Expenses paid from</h2>
               <ul className="mt-3 space-y-2 text-[15px]">
-                {(['cash', 'gcash', 'maya'] as const).map((m) => (
-                  <li key={m} className="flex justify-between border-b border-line pb-2 last:border-0">
-                    <span className="text-ink-soft">
-                      {m === 'cash' ? 'Cash' : m === 'gcash' ? 'GCash' : 'Maya'}
-                    </span>
+                {CHANNELS.map((c) => (
+                  <li key={c.value} className="flex justify-between border-b border-line pb-2 last:border-0">
+                    <span className="text-ink-soft">{c.label}</span>
                     <span className="num font-semibold text-spend">
-                      {peso(summary.expensesByMethod[m])}
+                      {peso(summary.expensesByChannel[c.value])}
                     </span>
                   </li>
                 ))}

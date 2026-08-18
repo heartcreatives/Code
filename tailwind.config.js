@@ -23,6 +23,8 @@ export default {
           deep: '#D96C11',
         },
         spend: '#E5486B',
+        // Money owed or still held — reads as "needs attention", not "error".
+        held: '#EFC94C',
         line: '#1E4365', // card borders and dividers
         ink: {
           DEFAULT: '#FFFFFF',
