@@ -1,0 +1,28 @@
+# Netlify picks these up automatically, so the build settings in the UI can be
+# left alone. The SPA redirect lives in public/_redirects.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 5 needs Node 18+. Pinning it means a change to Netlify's default
+  # can't break a deploy months from now.
+  NODE_VERSION = "20"
+
+# The app is a single HTML file plus content-hashed assets, so the assets can
+# be cached forever and the HTML never.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
