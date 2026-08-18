@@ -79,8 +79,8 @@
   .btn-primary {
     @apply flex w-full items-center justify-center gap-2 rounded-2xl bg-orange px-5 py-4
            font-display text-[17px] font-bold text-charcoal shadow-lift
-           active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45
-           disabled:shadow-none;
+           active:translate-y-px disabled:cursor-not-allowed disabled:bg-navy-lift
+           disabled:text-ink-faint disabled:shadow-none;
   }
 
   .btn-quiet {

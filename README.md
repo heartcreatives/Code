@@ -143,10 +143,16 @@ figure and an orange button read as the same colour at a glance. This rose clear
 every pairing. Nothing relies on colour alone in any case: every figure is
 labelled, and expenses carry a − sign.
 
-**The logo.** `src/components/Logo.tsx` draws a simplified roundel — at 36px in
-a header the full badge's lettering would turn to mud. To use the original
-artwork on the sign-in screen, drop it in as `public/logo.png` and swap the
-`<Logo />` in `Wordmark` for an `<img>`.
+**The logo.** Drop the badge artwork in as `public/logo.png` and the app picks
+it up everywhere — the sign-in badge and the header mark both prefer that file
+and fall back to the drawn SVG in `src/components/Logo.tsx` if it isn't there.
+Then run `npm run icons` to rebuild the home-screen icons from it.
+
+Export it with a **transparent background** if you can: the badge sits on navy,
+and a white square around it would show. If you only have the white-background
+version, the icon script handles it — it flood-fills the white *surround* away
+from the edges inward, so the white lettering inside the badge survives — but
+the in-app `<img>` shows whatever the file contains, white corners included.
 
 ## Project layout
 

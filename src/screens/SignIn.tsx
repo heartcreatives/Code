@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { CourtLines } from '../components/CourtLines'
-import { Wordmark } from '../components/Logo'
+import { LogoBadge } from '../components/Logo'
 import { useAuth } from '../state/AuthContext'
 
 export function SignIn() {
@@ -29,10 +29,12 @@ export function SignIn() {
       <div className="card relative overflow-hidden p-6">
         <CourtLines className="absolute inset-0 h-full w-full text-sky opacity-[0.08]" />
         <div className="relative">
-          <Wordmark />
-          <h1 className="mt-4 font-display text-3xl font-bold leading-tight text-white">
-            Court ledger
-          </h1>
+          <div className="flex flex-col items-center text-center">
+            <LogoBadge />
+            <h1 className="mt-4 font-display text-3xl font-bold leading-tight text-white">
+              Court ledger
+            </h1>
+          </div>
 
           {sent ? (
             <div className="mt-5">
