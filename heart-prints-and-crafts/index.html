@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heart Prints and Crafts</title>
+<meta name="description" content="Heart Prints and Crafts is a souvenir event cart based in Tagum City. We set up at your venue with personalized souvenirs for your guests. Book by call or message.">
+<meta name="theme-color" content="#FBF6F2">
+
+<!--
+  TO FINISH BEFORE SENDING TO THE CLIENT — details that were not supplied:
+  tagline, full address, WhatsApp number (currently reusing 0908 865 8381),
+  email, opening hours, exact service/product list, prices, opening date,
+  real customer reviews, social links, photos.
+  Nothing above has been invented on the page — sections were kept simple instead.
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..500&family=Karla:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --paper:#FBF6F2;
+  --sand:#EFE4D9;
+  --card:#FFFDFC;
+  --line:#E3D3C9;
+  --ink:#2C2226;
+  --muted:#7A666C;
+  --rose:#A83D63;
+  --rose-soft:#E7A7BC;
+  --blush:#F7E4E9;
+  --btn-bg:#A83D63;
+  --btn-fg:#FFFFFF;
+  --ghost-line:#CBAEB7;
+  --shadow:0 1px 2px rgba(58,32,42,.05), 0 10px 30px -18px rgba(58,32,42,.35);
+  --radius:14px;
+  --measure:62ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#191315;
+    --sand:#2E2327;
+    --card:#221A1D;
+    --line:#3A2C31;
+    --ink:#F4E9EA;
+    --muted:#B7A2A8;
+    --rose:#EFA3BC;
+    --rose-soft:#8C4F63;
+    --blush:#2C1E23;
+    --btn-bg:#EFA3BC;
+    --btn-fg:#26161C;
+    --ghost-line:#5B434B;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 34px -20px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#191315;
+  --sand:#2E2327;
+  --card:#221A1D;
+  --line:#3A2C31;
+  --ink:#F4E9EA;
+  --muted:#B7A2A8;
+  --rose:#EFA3BC;
+  --rose-soft:#8C4F63;
+  --blush:#2C1E23;
+  --btn-bg:#EFA3BC;
+  --btn-fg:#26161C;
+  --ghost-line:#5B434B;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 34px -20px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Karla","Helvetica Neue",Arial,sans-serif;
+  font-size:17px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{
+  font-family:"Bodoni Moda","Didot","Times New Roman",serif;
+  font-weight:500;
+  line-height:1.12;
+  letter-spacing:-.01em;
+  text-wrap:balance;
+  margin:0;
+}
+p{margin:0;max-width:var(--measure)}
+a{color:inherit}
+img{max-width:100%}
+
+.wrap{width:100%;max-width:1080px;margin-inline:auto;padding-inline:22px}
+section[id]{scroll-margin-top:78px}
+section{padding-block:clamp(56px,9vw,104px)}
+.eyebrow{
+  font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:600;color:var(--rose);margin:0 0 18px
+}
+.lede{color:var(--muted);font-size:1.06rem}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+  font-family:inherit;font-size:1rem;font-weight:600;letter-spacing:.01em;
+  padding:14px 26px;border-radius:999px;border:1px solid transparent;
+  text-decoration:none;cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.btn--primary{background:var(--btn-bg);color:var(--btn-fg);box-shadow:var(--shadow)}
+.btn--ghost{background:transparent;color:var(--ink);border-color:var(--ghost-line)}
+.btn--ghost:hover{border-color:var(--rose);color:var(--rose)}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible,a:focus-visible,summary:focus-visible{
+  outline:2px solid var(--rose);outline-offset:3px;border-radius:6px
+}
+@media (prefers-reduced-motion: reduce){.btn{transition:none}.btn:hover{transform:none}}
+.actions{display:flex;flex-wrap:wrap;gap:12px}
+
+/* ---------- header ---------- */
+header.bar{
+  position:sticky;top:0;z-index:40;
+  background:var(--paper);
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px}
+.brand{display:flex;flex-direction:column;line-height:1.15;text-decoration:none}
+.brand b{font-family:"Bodoni Moda",serif;font-weight:500;font-size:1.12rem;letter-spacing:.01em}
+.brand span{font-size:.66rem;letter-spacing:.17em;text-transform:uppercase;color:var(--muted)}
+.bar-actions{display:flex;align-items:center;gap:10px}
+.bar-actions .btn{padding:10px 20px;font-size:.94rem}
+.bar-phone{display:none;font-weight:600;text-decoration:none;font-variant-numeric:tabular-nums}
+.bar-phone:hover{color:var(--rose)}
+@media (min-width:720px){.bar-phone{display:inline}}
+
+/* ---------- hero ---------- */
+.hero{padding-top:clamp(44px,7vw,76px)}
+.hero-grid{display:grid;gap:clamp(34px,6vw,64px);align-items:center}
+@media (min-width:900px){.hero-grid{grid-template-columns:1.15fr .85fr}}
+.hero h1{font-size:clamp(2.45rem,6.2vw,4.05rem)}
+.hero h1 em{font-style:italic;color:var(--rose)}
+.hero-copy{display:flex;flex-direction:column;gap:26px;align-items:flex-start}
+.hero .lede{font-size:1.12rem}
+.hero-notes{
+  display:flex;flex-wrap:wrap;gap:8px 20px;list-style:none;padding:0;margin:0;
+  font-size:.92rem;color:var(--muted)
+}
+.hero-notes li{display:flex;align-items:center;gap:8px}
+.hero-notes li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--rose-soft)}
+
+/* tag motif */
+.tags{position:relative;display:grid;place-items:center;min-height:330px}
+.tag{
+  position:relative;width:min(290px,78vw);min-height:236px;padding:58px 28px 34px;text-align:center;
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);
+  clip-path:polygon(24px 0,calc(100% - 24px) 0,100% 24px,100% 100%,0 100%,0 24px);
+}
+.tag::before{
+  content:"";position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  width:13px;height:13px;border-radius:50%;
+  background:var(--paper);border:1px solid var(--line);
+}
+.tag--back{
+  position:absolute;left:50%;top:50%;background:var(--sand);
+  transform:translate(-50%,-50%) rotate(-6deg) translate(-22px,14px);z-index:1;
+}
+.tag--front{position:relative;z-index:2;transform:rotate(2.5deg)}
+.tag h2{font-size:1.72rem;line-height:1.2}
+.tag h2 em{font-style:italic;display:block;color:var(--rose)}
+.tag .rule{width:42px;height:1px;background:var(--rose-soft);margin:16px auto}
+.tag small{
+  display:block;font-size:.66rem;letter-spacing:.19em;text-transform:uppercase;color:var(--muted)
+}
+
+/* ---------- generic blocks ---------- */
+.band{background:var(--sand)}
+.head{max-width:40ch;margin-bottom:clamp(28px,4vw,44px)}
+.head h2{font-size:clamp(1.85rem,3.6vw,2.6rem)}
+.head p{margin-top:14px;color:var(--muted);max-width:46ch}
+
+.cards{display:grid;gap:16px}
+@media (min-width:760px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:28px 24px;display:flex;flex-direction:column;gap:10px;
+}
+.card h3{font-size:1.24rem}
+.card p{color:var(--muted);font-size:.97rem}
+.card .mark{
+  width:26px;height:26px;border-radius:50%;background:var(--blush);
+  border:1px solid var(--rose-soft);margin-bottom:6px
+}
+
+/* about */
+.about-grid{display:grid;gap:clamp(28px,5vw,56px)}
+@media (min-width:880px){.about-grid{grid-template-columns:1fr 1fr;align-items:start}}
+.about-body{display:flex;flex-direction:column;gap:18px;color:var(--muted)}
+.about-body strong{color:var(--ink);font-weight:600}
+.why{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.why li{
+  display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline;
+  padding:18px 0;border-top:1px solid var(--line)
+}
+.why li:last-child{border-bottom:1px solid var(--line)}
+.why b{font-weight:600}
+.why span{color:var(--muted);font-size:.95rem;grid-column:2}
+.why .dot{
+  width:7px;height:7px;border-radius:50%;background:var(--rose);
+  grid-row:1;transform:translateY(-3px)
+}
+
+/* steps */
+.steps{display:grid;gap:18px;counter-reset:step}
+@media (min-width:760px){.steps{grid-template-columns:repeat(3,1fr);gap:26px}}
+.step{padding-top:22px;border-top:2px solid var(--rose-soft)}
+.step .n{
+  font-family:"Bodoni Moda",serif;font-size:.9rem;letter-spacing:.14em;
+  color:var(--rose);display:block;margin-bottom:8px
+}
+.step h3{font-size:1.14rem;margin-bottom:6px}
+.step p{color:var(--muted);font-size:.96rem}
+
+/* contact */
+.contact-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:clamp(26px,4.5vw,46px);box-shadow:var(--shadow);
+  display:grid;gap:30px
+}
+@media (min-width:860px){.contact-card{grid-template-columns:1.05fr .95fr;gap:52px}}
+.contact-card h2{font-size:clamp(1.8rem,3.4vw,2.4rem)}
+.contact-card .lede{margin-top:14px}
+.channels{display:flex;flex-direction:column;gap:12px}
+.channel{
+  display:flex;align-items:center;gap:14px;text-decoration:none;
+  border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--paper);
+  transition:border-color .18s ease,transform .18s ease
+}
+.channel:hover{border-color:var(--rose);transform:translateY(-1px)}
+@media (prefers-reduced-motion: reduce){.channel{transition:none}.channel:hover{transform:none}}
+.channel .ic{
+  flex:none;width:38px;height:38px;border-radius:50%;background:var(--blush);
+  display:grid;place-items:center;color:var(--rose)
+}
+.channel .ic svg{width:19px;height:19px;fill:currentColor}
+.channel .t{display:flex;flex-direction:column;line-height:1.3}
+.channel .t small{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.channel .t b{font-weight:600;font-variant-numeric:tabular-nums}
+.checklist{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:.95rem;color:var(--muted)}
+.checklist li{display:flex;gap:10px}
+.checklist li::before{content:"—";color:var(--rose-soft)}
+
+/* faq */
+.faq{display:grid;gap:0;max-width:76ch}
+.faq details{border-bottom:1px solid var(--line)}
+.faq details:first-of-type{border-top:1px solid var(--line)}
+.faq summary{
+  cursor:pointer;list-style:none;padding:20px 34px 20px 0;position:relative;
+  font-weight:600;font-size:1.02rem
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{
+  content:"+";position:absolute;right:4px;top:17px;color:var(--rose);font-size:1.3rem;font-weight:400
+}
+.faq details[open] summary::after{content:"–"}
+.faq p{padding:0 0 22px;color:var(--muted);font-size:.98rem}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding-block:44px 96px;background:var(--sand)}
+@media (min-width:720px){footer{padding-bottom:44px}}
+.foot{display:flex;flex-wrap:wrap;gap:26px;justify-content:space-between;align-items:flex-start}
+.foot h3{font-size:1.2rem}
+.foot p,.foot a{color:var(--muted);font-size:.94rem;text-decoration:none}
+.foot a:hover{color:var(--rose)}
+.foot ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.legal{margin-top:32px;font-size:.82rem;color:var(--muted)}
+
+/* mobile action bar */
+.dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;gap:10px;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  background:var(--paper);
+  background:color-mix(in srgb, var(--paper) 94%, transparent);
+  backdrop-filter:blur(10px);border-top:1px solid var(--line)
+}
+.dock .btn{flex:1;padding:13px 12px;font-size:.95rem}
+@media (min-width:720px){.dock{display:none}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <b>Heart Prints and Crafts</b>
+      <span>Souvenir cart &middot; Tagum City</span>
+    </a>
+    <div class="bar-actions">
+      <a class="bar-phone" href="tel:+639088658381">0908 865 8381</a>
+      <a class="btn btn--primary" href="#book">Book Now</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">Souvenir event cart &middot; Tagum City</p>
+        <h1>A souvenir cart for <em>your</em> event in Tagum City.</h1>
+        <p class="lede">Heart Prints and Crafts brings the cart to your venue with personalized souvenirs for your guests. Tell us your date and we&rsquo;ll check if it&rsquo;s open.</p>
+        <div class="actions">
+          <a class="btn btn--primary" href="#book">Book Now</a>
+          <a class="btn btn--ghost" href="https://wa.me/639088658381?text=Hi%20Heart%20Prints%20and%20Crafts!%20I%27d%20like%20to%20ask%20about%20booking%20the%20souvenir%20cart." target="_blank" rel="noopener">Message on WhatsApp</a>
+        </div>
+        <ul class="hero-notes">
+          <li>Based in Tagum City</li>
+          <li>We set up at your venue</li>
+          <li>Booking by call or message</li>
+        </ul>
+      </div>
+
+      <div class="tags" aria-hidden="true">
+        <div class="tag tag--back"></div>
+        <div class="tag tag--front">
+          <h2>Heart Prints<em>and Crafts</em></h2>
+          <div class="rule"></div>
+          <small>Tagum City</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="band" id="services">
+    <div class="wrap">
+      <div class="head">
+        <h2>What the cart brings to your event</h2>
+        <p>One simple setup, handled by us from arrival to pack-up.</p>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="mark"></div>
+          <h3>The cart, at your venue</h3>
+          <p>We arrive, set up the souvenir cart, and run it for your event &mdash; nothing for you to prepare on the day.</p>
+        </article>
+        <article class="card">
+          <div class="mark"></div>
+          <h3>Personalized souvenirs</h3>
+          <p>Prints and crafted keepsakes made for your celebration, so guests go home with something that has your name and date on it.</p>
+        </article>
+        <article class="card">
+          <div class="mark"></div>
+          <h3>Matched to your occasion</h3>
+          <p>Wedding, birthday, baptism, debut, reunion or company party &mdash; tell us the occasion and guest count and we&rsquo;ll plan the cart around it.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT + WHY -->
+  <section id="about">
+    <div class="wrap about-grid">
+      <div>
+        <div class="head" style="margin-bottom:0">
+          <h2>A small souvenir cart, run with care</h2>
+        </div>
+        <div class="about-body" style="margin-top:20px">
+          <p>Heart Prints and Crafts is a <strong>souvenir event cart based in Tagum City</strong>. Instead of a shop you have to visit, the cart comes to your event and gives your guests something to take home.</p>
+          <p>Every booking is arranged directly with us &mdash; you message the date, venue and how many guests you&rsquo;re expecting, and we take it from there.</p>
+        </div>
+      </div>
+      <div>
+        <p class="eyebrow">Why book with us</p>
+        <ul class="why">
+          <li><i class="dot" aria-hidden="true"></i><b>We come to you</b><span>Mobile setup at your venue anywhere in Tagum City.</span></li>
+          <li><i class="dot" aria-hidden="true"></i><b>Personalized, not generic</b><span>Souvenirs are made for your event, not pulled off a shelf.</span></li>
+          <li><i class="dot" aria-hidden="true"></i><b>You talk to us directly</b><span>One number, straight answers on dates and details.</span></li>
+          <li><i class="dot" aria-hidden="true"></i><b>Simple to book</b><span>A call or a message is enough to start.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="band" id="how">
+    <div class="wrap">
+      <div class="head">
+        <h2>How booking works</h2>
+        <p>Three steps, all handled over call or message.</p>
+      </div>
+      <div class="steps">
+        <article class="step">
+          <span class="n">STEP 1</span>
+          <h3>Send us your date</h3>
+          <p>Message the event date, venue and guest count so we can check availability.</p>
+        </article>
+        <article class="step">
+          <span class="n">STEP 2</span>
+          <h3>We confirm the details</h3>
+          <p>We go over the souvenirs, what fits your event, and the cost before anything is final.</p>
+        </article>
+        <article class="step">
+          <span class="n">STEP 3</span>
+          <h3>The cart arrives set up</h3>
+          <p>On the day, we come to your venue, set up the cart, and take care of the souvenirs for your guests.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCATION + CONTACT -->
+  <section id="book">
+    <div class="wrap">
+      <div class="contact-card">
+        <div>
+          <p class="eyebrow">Serving Tagum City</p>
+          <h2>Let&rsquo;s check if your date is open</h2>
+          <p class="lede">We&rsquo;re an online and on-site business &mdash; there&rsquo;s no walk-in store to visit. Bookings and questions go through the number below, and the cart comes to your venue.</p>
+          <ul class="checklist" style="margin-top:24px">
+            <li>Your event date</li>
+            <li>Venue or area in Tagum City</li>
+            <li>Number of guests</li>
+            <li>The occasion you&rsquo;re celebrating</li>
+          </ul>
+          <p class="lede" style="margin-top:20px;font-size:.95rem">Holding an event outside Tagum City? Send your location and we&rsquo;ll let you know if we can cover it.</p>
+        </div>
+
+        <div class="channels">
+          <a class="channel" href="tel:+639088658381">
+            <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .7-.2 1l-2.3 2.2z"/></svg></span>
+            <span class="t"><small>Call or text</small><b>0908 865 8381</b></span>
+          </a>
+          <a class="channel" href="https://wa.me/639088658381?text=Hi%20Heart%20Prints%20and%20Crafts!%20I%27d%20like%20to%20book%20the%20souvenir%20cart%20for%20my%20event." target="_blank" rel="noopener">
+            <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.6 14c-.2.6-1.2 1.2-1.7 1.2-.5.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6 0-1.3.6-1.9.9-2.1.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.2 0 .4-.1.5l-.3.4c-.1.1-.3.3-.1.6.1.2.6 1 1.3 1.6.9.8 1.6 1 1.9 1.2.2.1.4.1.5-.1l.7-.8c.2-.2.3-.2.6-.1l1.8.8c.3.1.4.2.5.3.1.2.1.6-.1 1.2z"/></svg></span>
+            <span class="t"><small>WhatsApp</small><b>Chat with us</b></span>
+          </a>
+          <a class="channel" href="tel:+639088658381">
+            <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></span>
+            <span class="t"><small>Service area</small><b>Tagum City &amp; venues nearby</b></span>
+          </a>
+          <a class="btn btn--primary" style="margin-top:6px" href="tel:+639088658381">Book Now &mdash; 0908 865 8381</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" style="padding-top:0">
+    <div class="wrap">
+      <div class="head"><h2>Questions we get asked</h2></div>
+      <div class="faq">
+        <details open>
+          <summary>How much does it cost?</summary>
+          <p>It depends on the date, the number of guests and the souvenirs you choose. Message us those details and we&rsquo;ll give you the price before you commit to anything.</p>
+        </details>
+        <details>
+          <summary>Do you have a store I can visit?</summary>
+          <p>No walk-in store. Heart Prints and Crafts is run online, and the cart itself is set up at your event venue.</p>
+        </details>
+        <details>
+          <summary>Can you go to venues outside Tagum City?</summary>
+          <p>Send us the location and we&rsquo;ll tell you straight if we can cover it for your date.</p>
+        </details>
+        <details>
+          <summary>How do I reserve a date?</summary>
+          <p>Call or message 0908 865 8381 with your event date, venue and guest count. We&rsquo;ll confirm whether the date is still open and what happens next.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <h3>Heart Prints and Crafts</h3>
+      <p>Souvenir event cart &middot; Tagum City, Davao del Norte</p>
+    </div>
+    <div>
+      <p class="eyebrow" style="margin-bottom:6px">Contact</p>
+      <ul>
+        <li><a href="tel:+639088658381">0908 865 8381</a></li>
+        <li><a href="https://wa.me/639088658381" target="_blank" rel="noopener">WhatsApp us</a></li>
+        <li><a href="#book">Book the cart</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap legal">&copy; <span id="yr">2026</span> Heart Prints and Crafts &middot; Tagum City</div>
+</footer>
+
+<nav class="dock" aria-label="Quick contact">
+  <a class="btn btn--ghost" href="tel:+639088658381">Call</a>
+  <a class="btn btn--primary" href="https://wa.me/639088658381?text=Hi%20Heart%20Prints%20and%20Crafts!%20I%27d%20like%20to%20book%20the%20souvenir%20cart%20for%20my%20event." target="_blank" rel="noopener">Book on WhatsApp</a>
+</nav>
+
+<script>document.getElementById("yr").textContent = new Date().getFullYear();</script>
+</body>
+</html>
