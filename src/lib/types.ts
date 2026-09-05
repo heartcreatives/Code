@@ -166,17 +166,29 @@ export const DESTINATION_LABEL: Record<Destination, string> = {
 }
 
 /**
- * GCash 4 is Boboy's own account, so money paid into it has reached the owner
- * the moment it lands. It is still sales — it counts in revenue and in the
- * channel split — but it can never be "waiting to be released", so that is
- * derived here rather than left to whoever logged the entry.
+ * Staff whose collections go straight to the owner rather than into the pot
+ * that gets remitted later. Add a name here if that changes.
  */
-export const isDirectToOwner = (channel: Channel) => channel === 'gcash_boboy'
+export const DIRECT_TO_OWNER_COLLECTORS = ['Jiji']
+
+/**
+ * Money that has already reached the owner the moment it is taken, and so can
+ * never be "waiting to be released". Two ways that happens:
+ *   - GCash 4 is Boboy's own account, so it lands with him directly.
+ *   - Some staff hand their collections straight over.
+ * Both are still sales: they count in revenue and in the channel split. This
+ * is derived rather than left to whoever logs the entry, so it cannot drift.
+ */
+export function isDirectToOwner(channel: Channel, collectedBy?: string | null): boolean {
+  if (channel === 'gcash_boboy') return true
+  const who = collectedBy?.trim().toLowerCase()
+  return Boolean(who && DIRECT_TO_OWNER_COLLECTORS.some((n) => n.toLowerCase() === who))
+}
 
 /** Money collected but still in a staff member's hands. */
 export const isHeld = (e: Entry) =>
   isMoneyIn(e.kind) &&
-  !isDirectToOwner(e.channel) &&
+  !isDirectToOwner(e.channel, e.collected_by) &&
   (e.release_status === 'not_released' || e.release_status === 'to_confirm')
 
 /** What a customer still owes on an entry. */

@@ -8,7 +8,7 @@ import type {
   ReleaseStatus,
   Settings,
 } from './types'
-import { CATEGORIES } from './types'
+import { CATEGORIES, isDirectToOwner } from './types'
 import { hoursBetween } from './time'
 import { computeAmount, defaultUnitPrice, suggestRateType } from './pricing'
 
@@ -188,17 +188,27 @@ function prepareRow(
     payment_status = 'partial'
   }
 
-  // Says it was paid but never says whether it was handed over. Treated as
-  // still held, which is the safe direction, but worth a human look.
-  const statusText = `${get('release_status')} ${note}`.toLowerCase()
-  if (fromNote.payment === 'paid' && !fromNote.release && !/releas/.test(statusText)) {
-    issues.push("Says paid but not whether it was released — counted as still held")
-  }
-
   const category = resolvedKind === 'expense' ? parseCategory(get('category')) : null
 
-  // Money paid into Boboy's own GCash has already reached the owner.
-  const directToOwner = channel.value === 'gcash_boboy'
+  // Straight to the owner: Boboy's own GCash, or a collector who hands over
+  // immediately. Either way there is nothing left to release.
+  const directToOwner = isDirectToOwner(channel.value ?? 'cash', fromNote.collectedBy)
+
+  // Says it was paid but never says whether it was handed over. Left in the
+  // held pot, which is the safe direction — a row wrongly counted as released
+  // is money nobody goes looking for — and raised for a person to settle.
+  const statusText = `${get('release_status')} ${note}`.toLowerCase()
+  if (
+    !directToOwner &&
+    fromNote.payment === 'paid' &&
+    !fromNote.release &&
+    !/releas/.test(statusText)
+  ) {
+    issues.push('Says paid but not whether it was released — left as still held')
+  }
+  if (!statusText.trim()) {
+    issues.push('No status recorded — read as collected but not yet released')
+  }
 
   const entry: NewEntry = {
     kind: resolvedKind,

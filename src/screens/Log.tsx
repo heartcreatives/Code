@@ -132,7 +132,7 @@ export function Log() {
   const suggested = useMemo(() => suggestRateType(startTime, settings), [startTime, settings])
   // Boboy's own GCash: the money is with the owner the moment it lands, so
   // there is nothing to release and the controls for it are hidden.
-  const straightToOwner = isDirectToOwner(channel)
+  const straightToOwner = isDirectToOwner(channel, collectedBy)
 
   const problem = useMemo(() => {
     if (!date) return 'Pick a date.'
@@ -491,8 +491,9 @@ export function Log() {
 
             {straightToOwner ? (
               <p className="rounded-2xl border border-sky/30 bg-sky/10 px-4 py-3 text-[14px] text-sky">
-                GCash 4 is Boboy's own account, so this counts as sales but never needs
-                releasing — it's already with the owner.
+                {channel === 'gcash_boboy'
+                  ? "GCash 4 is Boboy's own account, so this counts as sales but never needs releasing — it's already with the owner."
+                  : `${collectedBy.trim()} hands collections straight to the owner, so this counts as sales but never needs releasing.`}
               </p>
             ) : (
             <div>
