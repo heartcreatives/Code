@@ -96,7 +96,7 @@ export const CHANNELS: { value: Channel; label: string; short: string }[] = [
   { value: 'cash', label: 'Cash', short: 'Cash' },
   { value: 'gcash_akiss', label: 'GCash 1 – Akiss', short: 'GCash 1' },
   { value: 'gcash_heart', label: 'GCash 2 – Heart', short: 'GCash 2' },
-  { value: 'gcash_3', label: 'GCash 3', short: 'GCash 3' },
+  { value: 'gcash_3', label: 'GCash 3 – Heart Globe', short: 'GCash 3' },
   { value: 'gcash_boboy', label: 'GCash 4 – Boboy', short: 'GCash 4' },
   { value: 'maya', label: 'Maya', short: 'Maya' },
 ]

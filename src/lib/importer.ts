@@ -300,8 +300,11 @@ export function parseKind(text: string): EntryKind | null {
 export function parseChannel(text: string): { value: Channel | null; reason?: string } {
   const t = text.toLowerCase()
   if (/akiss|gcash ?1|g-cash ?1/.test(t)) return { value: 'gcash_akiss' }
+  // Globe is tested before plain "heart": both GCash 2 and GCash 3 are
+  // Heart's accounts, so "heart globe" has to reach GCash 3 rather than being
+  // claimed by the GCash 2 rule it also matches.
+  if (/globe|gcash ?3|g-cash ?3/.test(t)) return { value: 'gcash_3' }
   if (/heart|gcash ?2|g-cash ?2/.test(t)) return { value: 'gcash_heart' }
-  if (/gcash ?3|g-cash ?3/.test(t)) return { value: 'gcash_3' }
   if (/boboy|gcash ?4|g-cash ?4/.test(t)) return { value: 'gcash_boboy' }
   if (/maya|paymaya/.test(t)) return { value: 'maya' }
   if (/gcash|g-cash/.test(t)) {

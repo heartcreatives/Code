@@ -8,8 +8,12 @@ has been released.
 It replaces a Google Sheet, and is built to make that sheet's failure modes impossible.
 
 - **Five entry types** — court booking, open play, paddle rent, machine rent, expense
-- **Four channels** — Cash, GCash 1 – Akiss, Maya, GCash 2 – Heart, split out for reconciliation
+- **Six channels** — Cash, GCash 1 – Akiss, GCash 2 – Heart, GCash 3 – Heart Globe,
+  GCash 4 – Boboy, Maya — split out so each one reconciles against its own balance
 - **Payment and release tracked separately** — money can be collected but not yet handed over
+- **Money owed & held** answers the daily question: how much is waiting to go to the owner,
+  and which account it came in through. GCash 4 is the owner's own account, so money there
+  counts as sales but is never part of that pot — the app derives that from the channel
 - **Live** — an entry logged at the court appears on the other phones within seconds
 - **Offline-safe** — entries queue on the phone and sync when the signal comes back
 - **Installable** — add to home screen, works one-handed
