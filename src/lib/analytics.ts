@@ -1,5 +1,5 @@
-import type { Channel, Entry, EntryKind, ExpenseCategory } from './types'
-import { collected, isCyrilShare, isHeld, isMoneyIn, outstanding } from './types'
+import type { Channel, Destination, Entry, EntryKind, ExpenseCategory } from './types'
+import { collected, destinationOf, isCyrilShare, isHeld, isMoneyIn, outstanding } from './types'
 import {
   endOfMonth,
   endOfWeek,
@@ -53,8 +53,10 @@ export function inRange(dateStr: string, range: Range): boolean {
 const emptyChannels = (): Record<Channel, number> => ({
   cash: 0,
   gcash_akiss: 0,
-  maya: 0,
   gcash_heart: 0,
+  gcash_3: 0,
+  gcash_boboy: 0,
+  maya: 0,
 })
 
 export interface Summary {
@@ -139,6 +141,13 @@ export function summarise(entries: Entry[]): Summary {
 // Money owed & held
 // ---------------------------------------------------------------------------
 
+/** Money held, split the way it actually gets handed over. */
+export interface HeldPot {
+  entries: Entry[]
+  total: number
+  byChannel: Record<Channel, number>
+}
+
 export interface OwedReport {
   /** Unpaid and partial entries — what customers still owe. */
   receivables: { entry: Entry; balance: number }[]
@@ -148,6 +157,15 @@ export interface OwedReport {
   heldTotal: number
   heldByChannel: Record<Channel, number>
   heldByPerson: { person: string; amount: number }[]
+  /**
+   * The headline question: how much is waiting to go to the owner, and through
+   * which channel did it arrive. Cyril's paddle and machine rent is a separate
+   * pot and is never mixed into it.
+   */
+  heldFor: Record<Destination, HeldPot>
+  /** Paid, but the slot moved — still in the channel, owed as court time. */
+  floating: Entry[]
+  floatingTotal: number
   cyrilPayout: number
 }
 
@@ -166,6 +184,10 @@ export function owedReport(all: Entry[], inPeriod: Entry[]): OwedReport {
   const held = all.filter(isHeld)
   const heldByChannel = emptyChannels()
   const people = new Map<string, number>()
+  const heldFor: Record<Destination, HeldPot> = {
+    owner: { entries: [], total: 0, byChannel: emptyChannels() },
+    cyril: { entries: [], total: 0, byChannel: emptyChannels() },
+  }
 
   for (const e of held) {
     const amount = collected(e)
@@ -173,7 +195,16 @@ export function owedReport(all: Entry[], inPeriod: Entry[]): OwedReport {
     // "To confirm" money is earmarked for someone even before it moves.
     const person = e.released_to?.trim() || 'Not assigned'
     people.set(person, (people.get(person) ?? 0) + amount)
+
+    const pot = heldFor[destinationOf(e.kind)]
+    pot.entries.push(e)
+    pot.total += amount
+    pot.byChannel[e.channel] += amount
   }
+  heldFor.owner.total = round2(heldFor.owner.total)
+  heldFor.cyril.total = round2(heldFor.cyril.total)
+
+  const floating = all.filter((e) => e.is_floating && isMoneyIn(e.kind))
 
   return {
     receivables,
@@ -184,6 +215,9 @@ export function owedReport(all: Entry[], inPeriod: Entry[]): OwedReport {
     heldByPerson: [...people.entries()]
       .map(([person, amount]) => ({ person, amount: round2(amount) }))
       .sort((a, b) => b.amount - a.amount),
+    heldFor,
+    floating,
+    floatingTotal: round2(floating.reduce((sum, e) => sum + collected(e), 0)),
     cyrilPayout: round2(
       inPeriod.filter((e) => isCyrilShare(e.kind)).reduce((sum, e) => sum + e.amount, 0),
     ),

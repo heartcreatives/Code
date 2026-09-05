@@ -90,9 +90,9 @@ export function replaceLocal(entries: Entry[]) {
 }
 
 const SELECT =
-  'id,kind,occurred_on,start_time,end_time,rate_type,qty,unit_price,amount,amount_overridden,' +
-  'channel,payment_status,amount_paid,release_status,released_to,released_on,customer,' +
-  'category,note,created_by,created_at'
+  'id,kind,occurred_on,start_time,end_time,rate_type,court,qty,unit_price,amount,' +
+  'amount_overridden,channel,payment_status,amount_paid,release_status,released_to,released_on,' +
+  'customer,is_floating,collected_by,category,note,created_by,created_at'
 
 export const supabaseStore: LedgerStore = {
   async list() {
@@ -182,6 +182,7 @@ function normalise(row: Record<string, unknown>): Entry {
     start_time: time(row.start_time),
     end_time: time(row.end_time),
     rate_type: (row.rate_type as Entry['rate_type']) ?? null,
+    court: (num(row.court) as Entry['court']) ?? null,
     qty: num(row.qty),
     unit_price: num(row.unit_price),
     amount: num(row.amount) ?? 0,
@@ -193,6 +194,8 @@ function normalise(row: Record<string, unknown>): Entry {
     released_to: (row.released_to as string | null) ?? null,
     released_on: (row.released_on as string | null) ?? null,
     customer: (row.customer as string | null) ?? null,
+    is_floating: Boolean(row.is_floating),
+    collected_by: (row.collected_by as string | null) ?? null,
     category: (row.category as Entry['category']) ?? null,
     note: (row.note as string | null) ?? null,
     created_by: (row.created_by as string | null) ?? null,

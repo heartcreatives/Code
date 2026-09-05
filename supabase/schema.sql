@@ -15,10 +15,17 @@ do $$ begin
   create type rate_type as enum ('peak', 'non_peak');
 exception when duplicate_object then null; end $$;
 
--- Two separate GCash accounts, which is why this is not just "gcash".
+-- Four separate GCash accounts, which is why this is not just "gcash".
+-- GCash 4 is the owner's own account: money there is sales, but it has already
+-- reached him, so it is never part of the "waiting to be released" pot.
 do $$ begin
-  create type pay_channel as enum ('cash', 'gcash_akiss', 'maya', 'gcash_heart');
+  create type pay_channel as enum
+    ('cash', 'gcash_akiss', 'gcash_heart', 'gcash_3', 'gcash_boboy', 'maya');
 exception when duplicate_object then null; end $$;
+
+-- Adding to an enum is safe on an existing database.
+do $$ begin alter type pay_channel add value if not exists 'gcash_3'; exception when others then null; end $$;
+do $$ begin alter type pay_channel add value if not exists 'gcash_boboy'; exception when others then null; end $$;
 
 do $$ begin
   create type payment_status as enum ('paid', 'partial', 'unpaid');
@@ -76,6 +83,8 @@ create table if not exists public.entries (
   start_time time,
   end_time time,
   rate_type rate_type,
+  -- Court 2 opened 5 Sep 2026; before that every booking was Court 1.
+  court smallint check (court in (1, 2)),
   qty numeric(8, 2),
   unit_price numeric(10, 2),
   amount numeric(12, 2) not null check (amount >= 0),
@@ -87,6 +96,10 @@ create table if not exists public.entries (
   released_to text,
   released_on date,
   customer text,
+  -- Paid, but the slot moved: money held as credit against a future booking.
+  is_floating boolean not null default false,
+  -- The staff member who took the money, when that differs from who logged it.
+  collected_by text,
   category expense_category,
   note text,
   created_by uuid references auth.users (id) on delete set null,
@@ -107,6 +120,9 @@ create table if not exists public.entries (
   ),
   constraint entries_rate_only_on_bookings check (
     rate_type is null or kind = 'court_booking'
+  ),
+  constraint entries_court_only_on_bookings check (
+    court is null or kind = 'court_booking'
   )
 );
 
@@ -139,6 +155,11 @@ create table if not exists public.settings (
 );
 
 insert into public.settings (id) values (1) on conflict (id) do nothing;
+
+-- Older installs: add the columns introduced after the first release.
+alter table public.entries add column if not exists court smallint;
+alter table public.entries add column if not exists is_floating boolean not null default false;
+alter table public.entries add column if not exists collected_by text;
 
 -- Older installs: add the columns introduced with paddle and machine rent.
 alter table public.settings add column if not exists paddle_rent_price numeric(10, 2) default 50;

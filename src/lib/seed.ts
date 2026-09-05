@@ -28,6 +28,7 @@ const blank = {
   start_time: null,
   end_time: null,
   rate_type: null,
+  court: null,
   qty: null,
   unit_price: null,
   amount_overridden: false,
@@ -35,6 +36,8 @@ const blank = {
   released_to: null,
   released_on: null,
   customer: null,
+  is_floating: false,
+  collected_by: null,
   category: null,
 } as const
 
@@ -68,6 +71,7 @@ export function sampleEntries(today: string = manilaToday()): NewEntry[] {
         start_time: `${String(hour).padStart(2, '0')}:00`,
         end_time: `${String((hour + hours) % 24).padStart(2, '0')}:00`,
         rate_type: rateType,
+        court: rand() > 0.7 ? 2 : 1,
         qty: hours,
         unit_price: unit,
         amount: computeAmount(hours, unit) ?? 0,

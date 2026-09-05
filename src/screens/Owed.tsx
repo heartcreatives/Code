@@ -15,6 +15,7 @@ import {
   collected,
   type Channel,
 } from '../lib/types'
+import type { HeldPot } from '../lib/analytics'
 
 const PERIOD_KEY = 'paayo.period'
 
@@ -94,6 +95,20 @@ export function Owed() {
         </p>
       </header>
 
+      {/* The question this screen exists to answer, and where the money is. */}
+      <PotCard
+        title="Not released to the owner"
+        subtitle="Court bookings and open play collected but not yet handed over"
+        pot={report.heldFor.owner}
+        hero
+      />
+
+      <PotCard
+        title="Not released to Cyril"
+        subtitle="Paddle and machine rent — a separate pot"
+        pot={report.heldFor.cyril}
+      />
+
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-4">
           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
@@ -103,18 +118,18 @@ export function Owed() {
             {peso(report.receivableTotal)}
           </p>
           <p className="mt-1 text-[13px] text-ink-faint">
-            {plural(report.receivables.length, 'entry', 'entries')} · all time
+            {plural(report.receivables.length, 'entry', 'entries')} · unpaid
           </p>
         </div>
         <div className="card p-4">
           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
-            Not yet released
+            Customer credits
           </p>
           <p className="num mt-1.5 text-[26px] font-bold leading-none text-held">
-            {peso(report.heldTotal)}
+            {peso(report.floatingTotal)}
           </p>
           <p className="mt-1 text-[13px] text-ink-faint">
-            {plural(report.held.length, 'entry', 'entries')} · all time
+            {plural(report.floating.length, 'rebooking')}
           </p>
         </div>
       </div>
@@ -153,11 +168,37 @@ export function Owed() {
         )}
       </section>
 
+      {/* ---- Customer credits -------------------------------------------- */}
+      {report.floating.length > 0 && (
+        <section className="card p-4">
+          <h2 className="font-display text-[17px] font-bold text-ink">Customer credits</h2>
+          <p className="mt-0.5 text-[13px] text-ink-faint">
+            Paid, then the slot moved. The money is still in the channel; the court owes the
+            time.
+          </p>
+          <ul className="mt-3 divide-y divide-line">
+            {report.floating.map((e) => (
+              <li key={e.id} className="flex items-start justify-between gap-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-[15px] text-ink">{e.customer || 'Walk-in'}</p>
+                  <p className="mt-0.5 text-[13px] text-ink-faint">
+                    {formatDate(e.occurred_on)} · {CHANNEL_LABEL[e.channel]}
+                  </p>
+                </div>
+                <span className="num shrink-0 text-[15px] font-semibold text-held">
+                  {peso(collected(e))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* ---- Held money -------------------------------------------------- */}
       <section className="card p-4">
-        <h2 className="font-display text-[17px] font-bold text-ink">Not yet released</h2>
+        <h2 className="font-display text-[17px] font-bold text-ink">Select by channel</h2>
         <p className="mt-0.5 text-[13px] text-ink-faint">
-          Collected but still in someone's hands. Tap a channel to select all of it.
+          Tap a channel to select everything held in it, ready to mark released.
         </p>
 
         <ul className="mt-3 space-y-2">
@@ -319,5 +360,64 @@ export function Owed() {
         />
       )}
     </div>
+  )
+}
+
+/**
+ * One pot of held money with its channel split — the reconciliation view.
+ * Channels with nothing in them are still listed, because "GCash 1: ₱0" is
+ * itself the answer when you are checking an account.
+ */
+function PotCard({
+  title,
+  subtitle,
+  pot,
+  hero = false,
+}: {
+  title: string
+  subtitle: string
+  pot: HeldPot
+  hero?: boolean
+}) {
+  return (
+    <section className={`card p-4 ${hero ? 'border-held/40' : ''}`}>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="font-display text-[17px] font-bold text-ink">{title}</h2>
+        <span
+          className={[
+            'num font-bold text-held',
+            hero ? 'text-[30px] leading-none' : 'text-[22px]',
+          ].join(' ')}
+        >
+          {peso(pot.total)}
+        </span>
+      </div>
+      <p className="mt-0.5 text-[13px] text-ink-faint">{subtitle}</p>
+
+      {pot.total <= 0 ? (
+        <p className="mt-3 text-[15px] text-ink-faint">Nothing waiting — all handed over.</p>
+      ) : (
+        <ul className="mt-3 space-y-1.5 text-[15px]">
+          {CHANNELS.map((c) => (
+            <li
+              key={c.value}
+              className="flex justify-between border-b border-line pb-1.5 last:border-0"
+            >
+              <span className={pot.byChannel[c.value] > 0 ? 'text-ink-soft' : 'text-ink-faint'}>
+                {c.label}
+              </span>
+              <span
+                className={[
+                  'num font-semibold',
+                  pot.byChannel[c.value] > 0 ? 'text-held' : 'text-ink-faint',
+                ].join(' ')}
+              >
+                {peso(pot.byChannel[c.value])}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }

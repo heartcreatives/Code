@@ -14,6 +14,7 @@ const HEADERS = [
   'Date',
   'Day',
   'Type',
+  'Court',
   'Customer',
   'Start',
   'End',
@@ -29,6 +30,8 @@ const HEADERS = [
   'Release',
   'Released to',
   'Released on',
+  'Collected by',
+  'Credit (rebooked)',
   'Category',
   'Note',
 ]
@@ -42,6 +45,7 @@ export function entriesToCsv(entries: Entry[]): string {
     e.occurred_on,
     weekday(e.occurred_on),
     KIND_LABEL[e.kind],
+    e.court ?? '',
     e.customer ?? '',
     e.start_time ?? '',
     e.end_time ?? '',
@@ -57,6 +61,8 @@ export function entriesToCsv(entries: Entry[]): string {
     RELEASE_LABEL[e.release_status],
     e.released_to ?? '',
     e.released_on ?? '',
+    e.collected_by ?? '',
+    e.is_floating ? 'yes' : '',
     e.category ? CATEGORY_LABEL[e.category] : '',
     e.note ?? '',
   ])

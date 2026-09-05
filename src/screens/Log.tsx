@@ -22,11 +22,13 @@ import {
   RELEASE_STATUSES,
   type Channel,
   type EntryKind,
+  type Court,
   type ExpenseCategory,
   type PaymentStatus,
   type RateType,
   type ReleaseStatus,
 } from '../lib/types'
+import { isDirectToOwner } from '../lib/types'
 
 const LAST_CHANNEL_KEY = 'paayo.lastChannel'
 
@@ -64,6 +66,9 @@ export function Log() {
   const [releaseStatus, setReleaseStatus] = useState<ReleaseStatus>('not_released')
   const [releasedTo, setReleasedTo] = useState('')
   const [customer, setCustomer] = useState('')
+  const [court, setCourt] = useState<Court>(1)
+  const [isFloating, setIsFloating] = useState(false)
+  const [collectedBy, setCollectedBy] = useState('')
   const [category, setCategory] = useState<ExpenseCategory>('supplies')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
@@ -125,6 +130,9 @@ export function Log() {
   }, [])
 
   const suggested = useMemo(() => suggestRateType(startTime, settings), [startTime, settings])
+  // Boboy's own GCash: the money is with the owner the moment it lands, so
+  // there is nothing to release and the controls for it are hidden.
+  const straightToOwner = isDirectToOwner(channel)
 
   const problem = useMemo(() => {
     if (!date) return 'Pick a date.'
@@ -151,6 +159,7 @@ export function Log() {
         start_time: isExpense ? null : startTime || null,
         end_time: isBooking ? endTime || null : null,
         rate_type: isBooking ? rateType : null,
+        court: isBooking ? court : null,
         qty: countsQty ? qty : null,
         unit_price: countsQty ? unitPrice : null,
         amount: amount!,
@@ -158,11 +167,17 @@ export function Log() {
         channel,
         payment_status: isExpense ? 'paid' : paymentStatus,
         amount_paid: paymentStatus === 'partial' && !isExpense ? amountPaid : null,
-        release_status: isExpense ? 'released' : releaseStatus,
-        released_to: releasedTo.trim() || null,
+        release_status: isExpense || straightToOwner ? 'released' : releaseStatus,
+        released_to: straightToOwner ? 'Boboy' : releasedTo.trim() || null,
         released_on:
-          releaseStatus === 'released' || releaseStatus === 'released_via_cash' ? date : null,
+          straightToOwner ||
+          releaseStatus === 'released' ||
+          releaseStatus === 'released_via_cash'
+            ? date
+            : null,
         customer: customer.trim() || null,
+        is_floating: isExpense ? false : isFloating,
+        collected_by: collectedBy.trim() || null,
         category: isExpense ? category : null,
         note: note.trim() || null,
       })
@@ -184,6 +199,7 @@ export function Log() {
       setCustomer('')
       setPaidText('')
       setPaymentStatus('paid')
+      setIsFloating(false)
       amountRef.current?.blur()
     } catch (err) {
       toast(`Couldn't save: ${(err as Error).message}`, 'error')
@@ -292,6 +308,20 @@ export function Log() {
                 ? `suggested from ${startTime || 'the start time'}`
                 : `overriding the ${rateLabel[suggested].toLowerCase()} suggestion`}
             </p>
+
+            <div className="mt-4">
+              <span className="label">Court</span>
+              <Segmented
+                size="sm"
+                label="Court"
+                value={String(court)}
+                onChange={(v) => setCourt(Number(v) as Court)}
+                options={[
+                  { value: '1', label: 'Court 1' },
+                  { value: '2', label: 'Court 2' },
+                ]}
+              />
+            </div>
           </div>
         )}
 
@@ -459,6 +489,12 @@ export function Log() {
               </div>
             )}
 
+            {straightToOwner ? (
+              <p className="rounded-2xl border border-sky/30 bg-sky/10 px-4 py-3 text-[14px] text-sky">
+                GCash 4 is Boboy's own account, so this counts as sales but never needs
+                releasing — it's already with the owner.
+              </p>
+            ) : (
             <div>
               <span className="label">Released</span>
               <div className="flex flex-wrap gap-2">
@@ -475,8 +511,9 @@ export function Log() {
                 ))}
               </div>
             </div>
+            )}
 
-            {releaseStatus !== 'not_released' && (
+            {!straightToOwner && releaseStatus !== 'not_released' && (
               <div>
                 <label className="label" htmlFor="released-to">
                   Released to
@@ -502,6 +539,36 @@ export function Log() {
                 </div>
               </div>
             )}
+
+            <label className="flex items-start gap-2.5 text-[15px] text-ink-soft">
+              <input
+                type="checkbox"
+                checked={isFloating}
+                onChange={(e) => setIsFloating(e.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-[#EFC94C]"
+              />
+              <span>
+                Rebooked — money held as credit for a future slot
+                <span className="mt-0.5 block text-[13px] text-ink-faint">
+                  Still counts as money the court is holding.
+                </span>
+              </span>
+            </label>
+
+            <div>
+              <label className="label" htmlFor="collected-by">
+                Collected by{' '}
+                <span className="font-normal normal-case tracking-normal">(if not you)</span>
+              </label>
+              <input
+                id="collected-by"
+                className="field"
+                placeholder="Staff name"
+                value={collectedBy}
+                onChange={(e) => setCollectedBy(e.target.value)}
+                maxLength={40}
+              />
+            </div>
 
             <div>
               <label className="label" htmlFor="customer">

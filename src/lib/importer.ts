@@ -1,5 +1,6 @@
 import type {
   Channel,
+  Court,
   EntryKind,
   ExpenseCategory,
   NewEntry,
@@ -28,6 +29,7 @@ export type FieldKey =
   | 'qty'
   | 'unit_price'
   | 'amount'
+  | 'rate_type'
   | 'channel'
   | 'payment_status'
   | 'amount_paid'
@@ -45,6 +47,7 @@ export const IMPORT_FIELDS: { key: FieldKey; label: string; required?: boolean }
   { key: 'qty', label: 'Qty (hours / players)' },
   { key: 'unit_price', label: 'Unit price' },
   { key: 'amount', label: 'Amount', required: true },
+  { key: 'rate_type', label: 'Peak / non-peak' },
   { key: 'channel', label: 'Channel', required: true },
   { key: 'payment_status', label: 'Payment status' },
   { key: 'amount_paid', label: 'Amount paid' },
@@ -65,9 +68,13 @@ const HINTS: Record<FieldKey, string[]> = {
   end_time: ['end', 'time out', 'to'],
   qty: ['qty', 'quantity', 'hours', 'hrs', 'players', 'pax'],
   unit_price: ['unit', 'rate', 'price', 'per'],
-  amount: ['amount', 'total', 'payment', 'collect'],
-  channel: ['channel', 'mode', 'method', 'gcash', 'account'],
-  payment_status: ['payment status', 'paid'],
+  amount: ['amount', 'total'],
+  rate_type: ['rate', 'peak'],
+  // "Paid via" is a channel column, not a payment-status one. It has to be
+  // listed here or the looser "paid" hint below claims it and every row lands
+  // in cash — which is exactly what happened the first time this ran.
+  channel: ['paid via', 'channel', 'mode of payment', 'mode', 'method', 'account', 'gcash'],
+  payment_status: ['payment status', 'paid?'],
   amount_paid: ['amount paid', 'partial'],
   release_status: ['release', 'remit', 'status'],
   released_to: ['released to', 'remitted to', 'person'],
@@ -145,11 +152,28 @@ function prepareRow(
   const end_time = parseTime(get('end_time'))
   const resolvedKind = kind ?? 'court_booking'
 
+  // "Court Booking" with no number is Court 1 — Court 2 only opened on
+  // 5 Sep 2026, so every earlier unnumbered booking was on Court 1.
+  const court = resolvedKind === 'court_booking' ? parseCourt(get('kind')) : null
+
+  // A rebooked slot: the money was taken, the booking moved, and it is held
+  // as credit against a future slot. Only an explicit "rebooked" sets this —
+  // notes like "floating 50" name a *part* of the row as credit, which cannot
+  // be split automatically, so those are raised for review instead.
+  const floating = /rebook/i.test(`${get('release_status')} ${note}`)
+  if (!floating && /floating/i.test(note)) {
+    issues.push(`Note says "${note.trim().slice(0, 40)}" — part of this row looks like credit`)
+  }
+
   let qty = parseNumber(get('qty'))
   if (qty === null && resolvedKind === 'court_booking') qty = hoursBetween(start_time, end_time)
 
+  // Respect the rate the sheet recorded; only fall back to the time-of-day
+  // suggestion when the column is absent or unreadable.
   const rate_type =
-    resolvedKind === 'court_booking' ? suggestRateType(start_time, settings) : null
+    resolvedKind === 'court_booking'
+      ? (parseRateType(get('rate_type')) ?? suggestRateType(start_time, settings))
+      : null
   const unit_price =
     parseNumber(get('unit_price')) ??
     (resolvedKind === 'expense' ? null : defaultUnitPrice(resolvedKind, rate_type ?? 'non_peak', settings))
@@ -164,7 +188,17 @@ function prepareRow(
     payment_status = 'partial'
   }
 
+  // Says it was paid but never says whether it was handed over. Treated as
+  // still held, which is the safe direction, but worth a human look.
+  const statusText = `${get('release_status')} ${note}`.toLowerCase()
+  if (fromNote.payment === 'paid' && !fromNote.release && !/releas/.test(statusText)) {
+    issues.push("Says paid but not whether it was released — counted as still held")
+  }
+
   const category = resolvedKind === 'expense' ? parseCategory(get('category')) : null
+
+  // Money paid into Boboy's own GCash has already reached the owner.
+  const directToOwner = channel.value === 'gcash_boboy'
 
   const entry: NewEntry = {
     kind: resolvedKind,
@@ -172,6 +206,7 @@ function prepareRow(
     start_time,
     end_time,
     rate_type,
+    court,
     qty,
     unit_price,
     amount: amount ?? 0,
@@ -182,10 +217,12 @@ function prepareRow(
     channel: channel.value ?? 'cash',
     payment_status,
     amount_paid: payment_status === 'partial' ? amount_paid : null,
-    release_status: fromNote.release ?? 'not_released',
-    released_to: get('released_to') || fromNote.releasedTo || null,
-    released_on: null,
+    release_status: directToOwner ? 'released' : (fromNote.release ?? 'not_released'),
+    released_to: directToOwner ? 'Boboy' : get('released_to') || fromNote.releasedTo || null,
+    released_on: directToOwner ? (occurred_on ?? null) : null,
     customer: get('customer') || null,
+    is_floating: floating,
+    collected_by: fromNote.collectedBy ?? null,
     category,
     note: note || null,
   }
@@ -201,6 +238,8 @@ interface StatusRead {
   payment?: PaymentStatus
   release?: ReleaseStatus
   releasedTo?: string
+  /** "Paid to Jiji" names the staff member who took the money, not a payout. */
+  collectedBy?: string
   /** The phrase that looked like a status but matched no rule. */
   ambiguous?: string
 }
@@ -230,6 +269,15 @@ export function readStatusText(text: string): StatusRead {
   const to = /released (?:to|kay) ([a-z][a-z ]{1,20})/.exec(t)
   if (to) out.releasedTo = titleCase(to[1].trim())
 
+  // "Paid to jiji" is the staff member who took the cash, which is a different
+  // fact from remitting it to the owner — recording it as a release would
+  // wrongly clear the money out of the held pot.
+  const paidTo = /paid (?:to|kay) ([a-z][a-z ]{1,20})/.exec(t)
+  if (paidTo) {
+    out.collectedBy = titleCase(paidTo[1].trim())
+    out.payment = out.payment ?? 'paid'
+  }
+
   // Something that talks about release or payment but matched nothing above.
   if (!out.release && !out.payment && /releas|remit|paid|balance|owe/.test(t)) {
     out.ambiguous = text.trim().slice(0, 60)
@@ -251,15 +299,32 @@ export function parseKind(text: string): EntryKind | null {
 
 export function parseChannel(text: string): { value: Channel | null; reason?: string } {
   const t = text.toLowerCase()
-  if (/akiss|gcash ?1/.test(t)) return { value: 'gcash_akiss' }
-  if (/heart|gcash ?2/.test(t)) return { value: 'gcash_heart' }
+  if (/akiss|gcash ?1|g-cash ?1/.test(t)) return { value: 'gcash_akiss' }
+  if (/heart|gcash ?2|g-cash ?2/.test(t)) return { value: 'gcash_heart' }
+  if (/gcash ?3|g-cash ?3/.test(t)) return { value: 'gcash_3' }
+  if (/boboy|gcash ?4|g-cash ?4/.test(t)) return { value: 'gcash_boboy' }
   if (/maya|paymaya/.test(t)) return { value: 'maya' }
   if (/gcash|g-cash/.test(t)) {
-    // Two GCash accounts — which one is a question only a person can answer.
-    return { value: null, reason: 'Says "GCash" but not which account (Akiss or Heart)' }
+    // Four GCash accounts — which one is a question only a person can answer.
+    return { value: null, reason: 'Says "GCash" but not which of the four accounts' }
   }
+  // "Cash" has to be tested after the GCash accounts, since it is a substring
+  // of every one of them.
   if (/cash|walk/.test(t)) return { value: 'cash' }
   return { value: null }
+}
+
+export function parseRateType(text: string): 'peak' | 'non_peak' | null {
+  const t = text.toLowerCase().trim()
+  if (!t) return null
+  if (/non[- ]?peak|off[- ]?peak/.test(t)) return 'non_peak'
+  if (/peak/.test(t)) return 'peak'
+  return null
+}
+
+/** "Court 2 - Booking" → 2. A plain "Court Booking" is Court 1. */
+export function parseCourt(text: string): Court {
+  return /court ?2/i.test(text) ? 2 : 1
 }
 
 export function parseCategory(text: string): ExpenseCategory | null {

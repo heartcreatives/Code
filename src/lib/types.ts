@@ -1,6 +1,16 @@
 export type EntryKind = 'court_booking' | 'open_play' | 'paddle_rent' | 'machine_rent' | 'expense'
 export type RateType = 'peak' | 'non_peak'
-export type Channel = 'cash' | 'gcash_akiss' | 'maya' | 'gcash_heart'
+export type Channel =
+  | 'cash'
+  | 'gcash_akiss'
+  | 'gcash_heart'
+  | 'gcash_3'
+  | 'gcash_boboy'
+  | 'maya'
+/** Court bookings happen on one of two courts. Court 2 opened 5 Sep 2026. */
+export type Court = 1 | 2
+/** Who the money is destined for, derived from the kind — never typed. */
+export type Destination = 'owner' | 'cyril'
 export type PaymentStatus = 'paid' | 'partial' | 'unpaid'
 export type ReleaseStatus = 'not_released' | 'released' | 'released_via_cash' | 'to_confirm'
 export type ExpenseCategory =
@@ -21,6 +31,8 @@ export interface Entry {
   start_time: string | null
   end_time: string | null
   rate_type: RateType | null
+  /** 1 or 2 for court bookings, null for everything else. */
+  court: Court | null
   /** Hours, players, or units — whichever the kind counts. */
   qty: number | null
   /** ₱ per hour / player / unit. */
@@ -37,6 +49,14 @@ export interface Entry {
   released_to: string | null
   released_on: string | null
   customer: string | null
+  /**
+   * Paid, but the slot was moved — the money is held as credit against a
+   * future booking. It is still sitting in the channel, so it still counts as
+   * money the court is holding.
+   */
+  is_floating: boolean
+  /** The staff member who took the money, when that isn't who logged it. */
+  collected_by: string | null
   category: ExpenseCategory | null
   note: string | null
   created_by: string | null
@@ -75,8 +95,10 @@ export const KIND_LABEL = Object.fromEntries(KINDS.map((k) => [k.value, k.label]
 export const CHANNELS: { value: Channel; label: string; short: string }[] = [
   { value: 'cash', label: 'Cash', short: 'Cash' },
   { value: 'gcash_akiss', label: 'GCash 1 – Akiss', short: 'GCash 1' },
-  { value: 'maya', label: 'Maya', short: 'Maya' },
   { value: 'gcash_heart', label: 'GCash 2 – Heart', short: 'GCash 2' },
+  { value: 'gcash_3', label: 'GCash 3', short: 'GCash 3' },
+  { value: 'gcash_boboy', label: 'GCash 4 – Boboy', short: 'GCash 4' },
+  { value: 'maya', label: 'Maya', short: 'Maya' },
 ]
 
 export const CHANNEL_LABEL = Object.fromEntries(CHANNELS.map((c) => [c.value, c.label])) as Record<
@@ -128,9 +150,34 @@ export const isMoneyIn = (kind: EntryKind) => kind !== 'expense'
 export const isCyrilShare = (kind: EntryKind) =>
   kind === 'paddle_rent' || kind === 'machine_rent'
 
+/**
+ * Whose pot an entry belongs to. The old sheet carried this as a suffix typed
+ * into the status column — "not released - court" versus
+ * "not released - machine / paddle rent" — which is exactly the kind of thing
+ * that gets typed three different ways. Here it follows from the entry type
+ * and cannot drift.
+ */
+export const destinationOf = (kind: EntryKind): Destination =>
+  isCyrilShare(kind) ? 'cyril' : 'owner'
+
+export const DESTINATION_LABEL: Record<Destination, string> = {
+  owner: 'Owner',
+  cyril: 'Cyril',
+}
+
+/**
+ * GCash 4 is Boboy's own account, so money paid into it has reached the owner
+ * the moment it lands. It is still sales — it counts in revenue and in the
+ * channel split — but it can never be "waiting to be released", so that is
+ * derived here rather than left to whoever logged the entry.
+ */
+export const isDirectToOwner = (channel: Channel) => channel === 'gcash_boboy'
+
 /** Money collected but still in a staff member's hands. */
 export const isHeld = (e: Entry) =>
-  isMoneyIn(e.kind) && (e.release_status === 'not_released' || e.release_status === 'to_confirm')
+  isMoneyIn(e.kind) &&
+  !isDirectToOwner(e.channel) &&
+  (e.release_status === 'not_released' || e.release_status === 'to_confirm')
 
 /** What a customer still owes on an entry. */
 export function outstanding(e: Entry): number {
